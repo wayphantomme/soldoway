@@ -1,271 +1,229 @@
 "use client";
 
-import { useState } from "react";
-import { lamports as sol } from "@solana/kit";
-import { toast } from "sonner";
-import { useWallet } from "./lib/wallet/context";
-import { useBalance } from "./lib/hooks/use-balance";
-import { lamportsToSolString } from "./lib/lamports";
-import { useSolanaClient } from "./lib/solana-client-context";
-import { ellipsify } from "./lib/explorer";
-import { VaultCard } from "./components/vault-card";
-import { GridBackground } from "./components/grid-background";
-import { ThemeToggle } from "./components/theme-toggle";
-import { ClusterSelect } from "./components/cluster-select";
-import { WalletButton } from "./components/wallet-button";
-import { useCluster } from "./components/cluster-context";
+import { motion } from "framer-motion";
+import { Zap, ArrowUpRight, Code, Network, XCircle, CheckCircle2, Shield, Users } from "lucide-react";
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+
+const features = [
+  { 
+    icon: Shield, 
+    title: "Low Barrier Entry", 
+    desc: "Kickstart your prospecting engine with as little as a $100 USDC deposit. Scale your B2B outreach without the heavy overhead." 
+  },
+  { 
+    icon: ArrowUpRight, 
+    title: "Yield-Bearing Escrow", 
+    desc: "Your budget works for you. While waiting for meetings to be logged, your funds are deployed into Solana's top DeFi vaults (Kamino/Solend)." 
+  },
+  { 
+    icon: Code, 
+    title: "B2B Connect API", 
+    desc: "Bridge the gap between Web3 and your CRM. Our API allows for seamless meeting validation and automated partner synchronization." 
+  },
+  { 
+    icon: Zap, 
+    title: "Zero-Gas Infrastructure", 
+    desc: "Powered by x402, we remove the \"SOL hurdle.\" Sales partners simply sign, and Soldoway handles the transaction costs behind the scenes." 
+  },
+];
+
+const comparisons = [
+  { old: "Capital sits in banks earning 0% APY.", new: "Idle deposits earn DeFi Yield automatically." },
+  { old: "Manual, slow, and opaque sales payouts.", new: "Instant $10 Payouts per verified meeting log." },
+  { old: "High friction: Users need SOL for gas fees.", new: "Gasless Experience via x402 (USDC only)." },
+  { old: "Disconnected B2B networking.", new: "API-First integration for seamless B2B collab." },
+];
+
+function FadeInUp({ children, delay = 0 }: { children: React.ReactNode, delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.3, delay }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export default function Home() {
-  const { wallet, status } = useWallet();
-  const { cluster, getExplorerUrl } = useCluster();
-  const client = useSolanaClient();
-
-  const address = wallet?.account.address;
-  const balance = useBalance(address);
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    if (!address) return;
-    await navigator.clipboard.writeText(address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleAirdrop = async () => {
-    if (!address) return;
-    try {
-      toast.info("Requesting airdrop...");
-      const sig = await client.airdrop(address, sol(1_000_000_000n));
-      toast.success("Airdrop received!", {
-        description: sig ? (
-          <a
-            href={getExplorerUrl(`/tx/${sig}`)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            View transaction
-          </a>
-        ) : undefined,
-      });
-    } catch (err) {
-      console.error("Airdrop failed:", err);
-      const msg = err instanceof Error ? err.message : String(err);
-      const isRateLimited =
-        msg.includes("429") || msg.includes("Internal JSON-RPC error");
-      toast.error(
-        isRateLimited
-          ? "Devnet faucet rate-limited. Use the web faucet instead."
-          : "Airdrop failed. Try again later.",
-        isRateLimited
-          ? {
-              description: (
-                <a
-                  href="https://faucet.solana.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  Open faucet.solana.com
-                </a>
-              ),
-            }
-          : undefined
-      );
-    }
-  };
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
-      <GridBackground />
-
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <span className="text-sm font-semibold tracking-tight">
-            Solana Starter Kit
-          </span>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <ClusterSelect />
-            <WalletButton />
+    <div className="min-h-screen bg-[#FFFFFF] text-[#000000] selection:bg-black selection:text-white pb-10 font-sans">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="text-xl font-bold tracking-tight">Soldoway</div>
+          <nav className="hidden md:flex gap-8 text-sm font-medium text-gray-500">
+            <a href="#features" className="hover:text-black transition-colors">Features</a>
+            <a href="#how-it-works" className="hover:text-black transition-colors">How it Works</a>
+            <a href="#api" className="hover:text-black transition-colors">API</a>
+            <a href="#docs" className="hover:text-black transition-colors">Docs</a>
+          </nav>
+          <div className="flex items-center">
+            <Link 
+              href="/dashboard"
+              className="bg-black text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-gray-800 transition-all shadow-sm hover:shadow-md"
+            >
+              Launch App
+            </Link>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main className="mx-auto max-w-6xl px-6">
-          {/* Hero */}
-          <section className="pt-6 pb-20 md:pt-8 md:pb-32">
-            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h1 className="font-black tracking-tight text-foreground">
-                  <span className="block text-6xl md:text-7xl">Anchor</span>
-                  <span className="block text-7xl md:text-8xl">Vault</span>
-                </h1>
+      <main className="mx-auto px-6 mt-20 space-y-32">
+        {/* Hero Section */}
+        <section className="text-center flex flex-col items-center justify-center max-w-4xl mx-auto pt-16">
+          <FadeInUp>
+            <h1 className="text-6xl md:text-[5.5rem] font-bold tracking-tighter leading-[1.05] mb-8">
+              Scalable Sales. <br /> Programmable Payouts.
+            </h1>
+          </FadeInUp>
+          <FadeInUp delay={0.1}>
+            <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+              Stop letting your marketing budget sit idle. Build a high-performance B2B sales engine on Solana. Deposit USDC, automate instant payouts for booked meetings, and earn DeFi yield on your capital. <strong className="text-black">100% Gasless.</strong>
+            </p>
+          </FadeInUp>
+          <FadeInUp delay={0.2}>
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-6">
+              <Link 
+                href="/dashboard"
+                className="bg-black text-white hover:bg-gray-800 rounded-full px-8 py-4 text-base font-semibold transition-all hover:-translate-y-1 w-full sm:w-auto"
+              >
+                Get Started with $100
+              </Link>
+              <Link 
+                href="#docs"
+                className="bg-white text-black border border-gray-300 hover:bg-gray-50 rounded-full px-8 py-4 text-base font-semibold transition-all hover:-translate-y-1 w-full sm:w-auto"
+              >
+                Read Documentation
+              </Link>
+            </div>
+            <p className="text-xs text-gray-400 font-mono tracking-widest uppercase">
+              Powered by x402 Gasless Technology
+            </p>
+          </FadeInUp>
+        </section>
+
+        {/* The Efficiency Gap */}
+        <section id="how-it-works" className="max-w-5xl mx-auto scroll-mt-24">
+          <FadeInUp>
+            <div className="mb-12 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">The Efficiency Gap</h2>
+              <p className="text-gray-500">Why the traditional model is broken, and how Soldoway fixes it.</p>
+            </div>
+          </FadeInUp>
+          <FadeInUp delay={0.1}>
+            <div className="grid grid-cols-1 md:grid-cols-2 bg-white border border-gray-200 rounded-3xl overflow-hidden divide-y md:divide-y-0 md:divide-x divide-gray-200 shadow-sm">
+              <div className="p-10 md:p-12 bg-gray-50/50">
+                <h3 className="text-xl font-bold mb-8 flex items-center gap-3">
+                  <span className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs tracking-wider uppercase">The Old Way</span>
+                </h3>
+                <ul className="space-y-6">
+                  {comparisons.map((c, i) => (
+                    <li key={i} className="flex items-start gap-4 text-gray-500">
+                      <XCircle className="w-6 h-6 text-gray-400 shrink-0 mt-0.5" />
+                      <span className="leading-relaxed">{c.old}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              <div className="flex max-w-2xl flex-col gap-3">
-                <p className="text-base leading-relaxed text-foreground/50">
-                  This program creates a personal vault for each user using a
-                  Program Derived Address (PDA). Connect your wallet, deposit
-                  SOL into your vault, and withdraw it anytime. Only you can
-                  access your funds.
-                </p>
-                <p className="text-sm leading-relaxed text-foreground/40">
-                  The vault is an{" "}
-                  <a
-                    href="https://www.anchor-lang.com/docs/introduction"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline underline-offset-2"
-                  >
-                    Anchor
-                  </a>{" "}
-                  program you can deploy to localnet or devnet and modify
-                  yourself. Check the README for setup instructions.
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  <a
-                    href="https://solana.com/docs"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm font-medium text-foreground/70 underline underline-offset-4 transition-colors hover:text-foreground"
-                  >
-                    Solana docs
-                    <span aria-hidden="true">&rarr;</span>
-                  </a>
-                  <a
-                    href="https://www.anchor-lang.com/docs/introduction"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm font-medium text-foreground/70 underline underline-offset-4 transition-colors hover:text-foreground"
-                  >
-                    Anchor docs
-                    <span aria-hidden="true">&rarr;</span>
-                  </a>
-                  <a
-                    href="https://faucet.solana.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-sm font-medium text-foreground/70 underline underline-offset-4 transition-colors hover:text-foreground"
-                  >
-                    Faucet
-                    <span aria-hidden="true">&rarr;</span>
-                  </a>
-                </div>
+              <div className="p-10 md:p-12 bg-white">
+                <h3 className="text-xl font-bold mb-8 flex items-center gap-3">
+                  <span className="bg-black text-white px-3 py-1 rounded-full text-xs tracking-wider uppercase">The Soldoway Way</span>
+                </h3>
+                <ul className="space-y-6">
+                  {comparisons.map((c, i) => (
+                    <li key={i} className="flex items-start gap-4 text-black font-medium">
+                      <CheckCircle2 className="w-6 h-6 text-black shrink-0 mt-0.5" />
+                      <span className="leading-relaxed">{c.new}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
-          </section>
+          </FadeInUp>
+        </section>
 
-          {/* Template content */}
-          <div className="space-y-10 pb-20">
-            {/* Wallet Balance */}
-            {status === "connected" && address && (
-              <section className="relative w-full overflow-hidden rounded-2xl border border-border-low bg-card px-5 py-5">
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-100 dark:opacity-0"
-                  aria-hidden="true"
-                  style={{
-                    backgroundImage: `
-                      linear-gradient(to right, rgba(0,0,0,0.06) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(0,0,0,0.06) 1px, transparent 1px)
-                    `,
-                    backgroundSize: "24px 24px",
-                    mask: "radial-gradient(ellipse 80% 80% at 50% 0%, black, transparent)",
-                    WebkitMask:
-                      "radial-gradient(ellipse 80% 80% at 50% 0%, black, transparent)",
-                  }}
-                />
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-0 dark:opacity-100"
-                  aria-hidden="true"
-                  style={{
-                    backgroundImage: `
-                      linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)
-                    `,
-                    backgroundSize: "24px 24px",
-                    mask: "radial-gradient(ellipse 80% 80% at 50% 0%, black, transparent)",
-                    WebkitMask:
-                      "radial-gradient(ellipse 80% 80% at 50% 0%, black, transparent)",
-                  }}
-                />
-                <div className="relative flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cream">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-4 w-4 text-foreground/70"
-                      >
-                        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-                        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-                        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
-                      </svg>
-                    </div>
-                    <span className="text-sm font-medium">Wallet Balance</span>
-                    <button
-                      onClick={handleCopy}
-                      className="flex cursor-pointer items-center gap-1.5 font-mono text-xs text-muted transition hover:text-foreground"
-                    >
-                      {ellipsify(address, 4)}
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-3 w-3"
-                      >
-                        {copied ? (
-                          <path d="M20 6 9 17l-5-5" />
-                        ) : (
-                          <>
-                            <rect
-                              width="14"
-                              height="14"
-                              x="8"
-                              y="8"
-                              rx="2"
-                              ry="2"
-                            />
-                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                          </>
-                        )}
-                      </svg>
-                    </button>
+        {/* Core Features */}
+        <section id="features" className="max-w-5xl mx-auto scroll-mt-24">
+          <FadeInUp>
+            <div className="mb-12 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Core Infrastructure</h2>
+            </div>
+          </FadeInUp>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {features.map((f, i) => (
+              <FadeInUp key={i} delay={i * 0.1}>
+                <div className="border border-gray-200 bg-white p-8 md:p-10 rounded-2xl h-full flex flex-col items-start transition-all hover:border-gray-300 group">
+                  <div className="p-4 bg-gray-50 rounded-xl mb-6 group-hover:bg-gray-100 transition-colors">
+                    <f.icon className="w-7 h-7 stroke-black stroke-[1.5px]" />
                   </div>
-                  {cluster !== "mainnet" && (
-                    <button
-                      onClick={handleAirdrop}
-                      className="cursor-pointer rounded-lg border border-border-low px-3 py-1.5 text-xs font-medium transition hover:bg-cream"
-                    >
-                      Airdrop
-                    </button>
-                  )}
+                  <h3 className="font-bold text-xl mb-3">{f.title}</h3>
+                  <p className="text-gray-500 leading-relaxed text-sm md:text-base">{f.desc}</p>
                 </div>
-                <p className="relative mt-4 font-mono text-4xl font-bold tabular-nums tracking-tight">
-                  {balance.lamports != null
-                    ? lamportsToSolString(balance.lamports)
-                    : "\u2014"}
-                  <span className="ml-1.5 text-lg font-normal text-muted">
-                    SOL
-                  </span>
-                </p>
-              </section>
-            )}
-
-            {/* Vault Program Section */}
-            <VaultCard />
+              </FadeInUp>
+            ))}
           </div>
-        </main>
-      </div>
+        </section>
+
+        {/* Technical Spotlight (The x402 Advantage) */}
+        <section id="api" className="max-w-4xl mx-auto scroll-mt-24">
+          <FadeInUp>
+            <div className="border border-gray-200 rounded-3xl p-10 md:p-16 text-center bg-gray-50/50">
+              <div className="inline-flex items-center gap-2 mb-6 bg-white border border-gray-200 px-4 py-1.5 rounded-full text-sm font-semibold tracking-tight text-gray-500 shadow-sm">
+                <Network className="w-4 h-4" /> x402 Standard
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight mb-6">Web3 Power, Web2 Simplicity.</h2>
+              <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
+                By leveraging the <strong className="text-black">x402 standard</strong>, Soldoway abstracts the complexity of blockchain. We decouple the fee-payer from the user, allowing sales professionals to earn and transact in USDC without ever worrying about gas prices or network congestion.
+              </p>
+            </div>
+          </FadeInUp>
+        </section>
+
+        {/* Referral Section */}
+        <section className="max-w-4xl mx-auto">
+          <FadeInUp>
+            <div className="bg-black text-white rounded-[2.5rem] p-12 md:p-20 text-center shadow-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent opacity-30 pointer-events-none"></div>
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="w-16 h-16 bg-white/10 flex items-center justify-center rounded-2xl mb-8 border border-white/20">
+                  <Users className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-6">Grow the Ecosystem. Earn Rewards.</h2>
+                <p className="text-white/70 max-w-lg mx-auto text-lg leading-relaxed mb-10">
+                  Invite businesses or sales partners to the platform. Earn a 2% kickback on every successful meeting log within your network. Transparent, on-chain, and automated.
+                </p>
+                <Link 
+                  href="/dashboard/referral"
+                  className="bg-white text-black hover:bg-gray-200 rounded-full px-8 py-4 text-base font-semibold transition-all hover:scale-105"
+                >
+                  Join the Network
+                </Link>
+              </div>
+            </div>
+          </FadeInUp>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="mt-32 border-t border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center text-sm font-medium text-gray-500">
+          <div className="text-center md:text-left mb-4 md:mb-0">
+            <p className="text-black font-semibold mb-1">Soldoway © 2026</p>
+            <p>Built on Solana. Sponsored by x402.</p>
+          </div>
+          <div className="flex gap-8">
+            <a href="#" className="hover:text-black transition-colors">Twitter</a>
+            <a href="#" className="hover:text-black transition-colors">Discord</a>
+            <a href="#" className="hover:text-black transition-colors">GitHub</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
