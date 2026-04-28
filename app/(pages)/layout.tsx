@@ -3,13 +3,22 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
+  const { publicKey, wallet, connecting } = useWallet();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const getButtonLabel = () => {
+    if (connecting) return "Connecting...";
+    if (publicKey) return undefined; // Wallet connected, let it show the address
+    if (wallet) return "Connect"; // Wallet selected but not connected
+    return "Connect Wallet"; // No wallet selected
+  };
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] text-[#000000] font-sans selection:bg-black selection:text-white">
@@ -22,12 +31,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
             <nav className="hidden md:flex gap-6 text-sm font-semibold text-slate-500">
               <Link href="/dashboard" className="hover:text-black transition-colors">Dashboard</Link>
-              <Link href="/dashboard/sales" className="hover:text-black transition-colors">Sales</Link>
-              <Link href="/dashboard/referral" className="hover:text-black transition-colors">Referral</Link>
+              <Link href="/sales" className="hover:text-black transition-colors">Sales</Link>
+              <Link href="/referral" className="hover:text-black transition-colors">Referral</Link>
             </nav>
           </div>
           <div className="flex items-center">
-            {mounted && <WalletMultiButton />}
+            {mounted && <WalletMultiButton>{getButtonLabel()}</WalletMultiButton>}
           </div>
         </div>
       </header>

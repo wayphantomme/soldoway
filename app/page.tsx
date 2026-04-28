@@ -199,7 +199,7 @@ export default function Home() {
                   Invite businesses or sales partners to the platform. Earn a 2% kickback on every successful meeting log within your network. Transparent, on-chain, and automated.
                 </p>
                 <Link 
-                  href="/dashboard/referral"
+                  href="/referral"
                   className="bg-white text-black hover:bg-gray-200 rounded-full px-8 py-4 text-base font-semibold transition-all hover:scale-105"
                 >
                   Join the Network
@@ -218,9 +218,8 @@ export default function Home() {
             <p>Built on Solana. Sponsored by x402.</p>
           </div>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-black transition-colors">Twitter</a>
-            <a href="#" className="hover:text-black transition-colors">Discord</a>
-            <a href="#" className="hover:text-black transition-colors">GitHub</a>
+            <a href="https://x.com/soldoway_sales" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">Twitter</a>
+            <a href="https://github.com/wayphantomme/soldoway" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">GitHub</a>
           </div>
         </div>
       </footer>

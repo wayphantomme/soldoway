@@ -95,19 +95,32 @@
 
 /* Solana Wallet Adapter Overrides for Sody.app Aesthetic */
 .wallet-adapter-button {
-  background-color: #000000 !important;
+  background: linear-gradient(135deg, #000000, #1a1a1a) !important;
   color: #ffffff !important;
   border-radius: 9999px !important;
   font-family: var(--font-sans) !important;
   font-weight: 600 !important;
-  height: 48px !important;
+  font-size: 14px !important;
+  height: 44px !important;
   padding: 0 24px !important;
-  transition: all 0.3s ease !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
 }
 
 .wallet-adapter-button:not([disabled]):hover {
-  background-color: #1a1a1a !important;
-  transform: scale(1.02);
+  background: linear-gradient(135deg, #111111, #2a2a2a) !important;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.wallet-adapter-button:not([disabled]):active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
 }
 
 .wallet-adapter-dropdown-list {
@@ -115,29 +128,122 @@
   border: 1px solid var(--border) !important;
   border-radius: var(--radius) !important;
   color: #000000 !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+  margin-top: 8px !important;
+  padding: 8px !important;
 }
 
 .wallet-adapter-dropdown-list-item {
-  color: #000000 !important;
+  color: #0d0d0d !important;
   font-family: var(--font-sans) !important;
+  font-weight: 500 !important;
+  border-radius: calc(var(--radius) - 4px) !important;
+  padding: 10px 16px !important;
+  transition: background-color 0.2s ease !important;
 }
 
 .wallet-adapter-dropdown-list-item:not([disabled]):hover {
   background-color: #f5f5f5 !important;
+  color: #000000 !important;
 }
 
 .wallet-adapter-modal-wrapper {
   background-color: #ffffff !important;
   border: 1px solid var(--border) !important;
-  border-radius: 16px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1) !important;
+  font-family: var(--font-sans) !important;
+  padding-bottom: 8px !important;
 }
 
 .wallet-adapter-modal-title {
   color: #000000 !important;
+  font-weight: 700 !important;
+  padding: 24px 56px 16px 24px !important;
+}
+
+.wallet-adapter-modal-button-close {
+  background: #000000 !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: absolute !important;
+  top: 16px !important;
+  right: 16px !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
 }
 
 .wallet-adapter-modal-button-close svg {
-  fill: #000000 !important;
+  fill: #ffffff !important;
+  width: 14px !important;
+  height: 14px !important;
+  transition: transform 0.2s ease, fill 0.2s ease !important;
 }
 
+.wallet-adapter-modal-button-close:hover {
+  background: #2a2a2a !important;
+}
+
+.wallet-adapter-modal-button-close:hover svg {
+  transform: rotate(90deg) !important;
+}
+
+/* Wallet Modal List Layout & Color Fixes */
+.wallet-adapter-modal-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 0 24px 24px 24px !important;
+}
+
+/* Target the wallet buttons specifically inside the modal */
+.wallet-adapter-modal-list .wallet-adapter-button {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-radius: 14px !important;
+  padding: 14px 20px !important;
+  width: 100% !important;
+  height: auto !important;
+  justify-content: flex-start !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+}
+
+/* Force all text inside the black modal buttons to be white */
+.wallet-adapter-modal-list .wallet-adapter-button span {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  font-size: 15px !important;
+}
+
+/* Hover state for modal buttons */
+.wallet-adapter-modal-list .wallet-adapter-button:not([disabled]):hover {
+  background: #1a1a1a !important;
+  transform: translateY(-1px) scale(1.01) !important;
+  border: none !important;
+}
+
+/* "More options" dropdown text color */
+.wallet-adapter-modal-list-more {
+  color: #000000 !important;
+  font-family: var(--font-sans) !important;
+  font-weight: 600 !important;
+  padding: 12px 24px 24px 24px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.wallet-adapter-modal-list-more span {
+  color: #000000 !important;
+}
+
+.wallet-adapter-modal-list-more svg {
+  fill: #000000 !important;
+}
