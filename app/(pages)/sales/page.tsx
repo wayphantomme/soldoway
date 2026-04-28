@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { DollarSign, Clock, Users, X, Link as LinkIcon, Mail, FileText, Filter, Brain, Coins, BarChart3, Image as ImageIcon, Briefcase, Zap, ShieldCheck, CheckCircle2, ChevronDown } from "lucide-react";
+import { DollarSign, Clock, Users, X, Link as LinkIcon, Mail, FileText, Filter, Brain, Coins, BarChart3, Image as ImageIcon, Briefcase, Zap, ShieldCheck, CheckCircle2, ChevronDown, Send } from "lucide-react";
 
 // Mock Data
 const earningStats = {
