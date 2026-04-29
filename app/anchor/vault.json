@@ -1,0 +1,378 @@
+{
+  "address": "9NfuXefRC4hPrHu5EcA1DPn7hJUUcNh53mN8fbpqejas",
+  "metadata": {
+    "name": "vault",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "A simple SOL vault program"
+  },
+  "instructions": [
+    {
+      "name": "close_task",
+      "discriminator": [
+        55,
+        234,
+        77,
+        69,
+        245,
+        208,
+        54,
+        167
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "task"
+          ]
+        },
+        {
+          "name": "task",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "account",
+                "path": "task.title",
+                "account": "Task"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_task",
+      "discriminator": [
+        194,
+        80,
+        6,
+        180,
+        232,
+        127,
+        48,
+        171
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "task",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "arg",
+                "path": "title"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "docs": [
+            "The user profile is now optional to allow creation without pre-initialization"
+          ],
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "company_name",
+          "type": "string"
+        },
+        {
+          "name": "category",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "payout_per_meeting",
+          "type": "u64"
+        },
+        {
+          "name": "total_budget",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize_user",
+      "discriminator": [
+        111,
+        17,
+        185,
+        250,
+        60,
+        122,
+        38,
+        254
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "referrer",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "update_task",
+      "discriminator": [
+        100,
+        51,
+        124,
+        168,
+        211,
+        208,
+        42,
+        228
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "task"
+          ]
+        },
+        {
+          "name": "task",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  97,
+                  115,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "account",
+                "path": "task.title",
+                "account": "Task"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Task",
+      "discriminator": [
+        79,
+        34,
+        229,
+        55,
+        88,
+        90,
+        55,
+        84
+      ]
+    },
+    {
+      "name": "UserProfile",
+      "discriminator": [
+        32,
+        37,
+        119,
+        205,
+        179,
+        180,
+        13,
+        194
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InsufficientBudget",
+      "msg": "The task budget has been exhausted."
+    }
+  ],
+  "types": [
+    {
+      "name": "Task",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "referrer",
+            "type": "pubkey"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "company_name",
+            "type": "string"
+          },
+          {
+            "name": "category",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "payout_per_meeting",
+            "type": "u64"
+          },
+          {
+            "name": "total_budget",
+            "type": "u64"
+          },
+          {
+            "name": "meetings_logged",
+            "type": "u64"
+          },
+          {
+            "name": "payouts_distributed",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserProfile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "referrer",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_earned",
+            "type": "u64"
+          },
+          {
+            "name": "referrals_count",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
