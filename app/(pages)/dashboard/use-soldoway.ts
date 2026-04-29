@@ -51,7 +51,9 @@ export const useSoldoway = () => {
     if (!program) return;
     setLoading(true);
     try {
-      const accounts = await program.account.task.all();
+      // Use any to bypass casing inconsistency between IDL and Anchor TS versions
+      const taskAccount = (program.account as any).task || (program.account as any).Task;
+      const accounts = await taskAccount.all();
       setTasks(accounts.map((acc: any) => ({
         publicKey: acc.publicKey,
         ...acc.account,
@@ -70,7 +72,8 @@ export const useSoldoway = () => {
         [Buffer.from("user"), wallet.publicKey.toBuffer()],
         program.programId
       );
-      const profile = await program.account.userProfile.fetch(profilePda);
+      const profileAccount = (program.account as any).userProfile || (program.account as any).UserProfile;
+      const profile = await profileAccount.fetch(profilePda);
       setUserProfile(profile as any);
     } catch (err) {
       setUserProfile(null);
