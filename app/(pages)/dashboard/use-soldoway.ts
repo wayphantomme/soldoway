@@ -3,7 +3,7 @@ import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
 import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Buffer } from 'buffer';
-import idl from '../../anchor/vault.json';
+import idl from '@/app/anchor/vault.json';
 
 // Ensure Buffer is available globally for Anchor
 if (typeof window !== 'undefined' && !window.Buffer) {
