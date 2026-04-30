@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["ws"],
+  serverExternalPackages: ["ws", "@solana-program/memo", "@solana-program/system", "@privy-io/react-auth", "why-is-node-running"],
   // @solana/kit-plugin-payer's browser bundle has a spurious `import 'fs'`
   // from the payerFromFile export. Stub it out for the client bundle.
   turbopack: {
@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
         "encoding": false,
       };
     }
-    config.externals.push("pino-pretty", "lokijs", "encoding");
+    config.externals.push("pino-pretty", "lokijs", "encoding", "why-is-node-running");
     return config;
   },
 };
