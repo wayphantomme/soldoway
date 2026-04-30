@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Campaign {
+  id              String    @id @default(uuid())
+  campaignPda     String    @unique
+  ownerWallet     String
+  title           String
+  companyName     String?
+  category        String?
+  description     String?
+  payout          Float?
+  totalDeposit    Float
+  currentYield    Float     @default(0)
+  status          String    @default("ACTIVE")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  meetings        Meeting[]
+  yieldLogs       YieldLog[]
+}
+
+model YieldLog {
+  id          String   @id @default(uuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id])
+  yieldAmount Float
+  loggedAt    DateTime @default(now())
+}
+
+model Meeting {
+  id              String    @id @default(uuid())
+  campaignId      String
+  campaign        Campaign  @relation(fields: [campaignId], references: [id])
+  partnerWallet   String
+  status          String    @default("PENDING") // PENDING, VALIDATED, PAID
+  createdAt       DateTime  @default(now())
+}

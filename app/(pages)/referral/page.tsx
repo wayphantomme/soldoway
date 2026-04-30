@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { usePrivy } from "@privy-io/react-auth";
 import { useSoldoway } from "../dashboard/use-soldoway";
 import { ellipsify } from "../../lib/explorer";
-import { useCluster } from "../../components/cluster-context";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: number }) {
@@ -28,7 +27,7 @@ export default function ReferralPage() {
   const [copied, setCopied] = useState(false);
   
   const { userProfile, referrals } = useSoldoway();
-  const { getExplorerUrl } = useCluster();
+  const getExplorerUrl = (path: string) => `https://explorer.solana.com${path}?cluster=devnet`;
 
   // Dynamic link generation
   const inviteLink = useMemo(() => {

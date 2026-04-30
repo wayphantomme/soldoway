@@ -5,6 +5,18 @@
       "source": "solana-foundation/solana-dev-skill",
       "sourceType": "github",
       "computedHash": "4a4c953b235944cc5c2a76af9669406ee01213bf6892941399e646cfbf9259b9"
+    },
+    "supabase": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/supabase/SKILL.md",
+      "computedHash": "bf2fc86c62931e42d07e0a7bb9b33e1ebcc67de534e1531f3362d59dffc77265"
+    },
+    "supabase-postgres-best-practices": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
+      "computedHash": "d606a1146be6d54fb9e73f718b5320b9acac5ff2ba2d7230a555df4b5a923b4a"
     }
   }
 }

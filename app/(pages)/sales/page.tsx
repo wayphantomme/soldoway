@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DollarSign, Clock, Users, X, Link as LinkIcon, Mail, Filter, Loader2, Building2, ExternalLink, Send, ShieldCheck, CheckCircle2, ChevronDown } from "lucide-react";
 import { useSoldoway } from "../dashboard/use-soldoway";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
@@ -30,34 +30,65 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: nu
 
 export default function SalesPage() {
   const { tasks, loading, updateTaskProgress } = useSoldoway();
+  const [dbCampaigns, setDbCampaigns] = useState<any[]>([]);
+  const [isLoadingDb, setIsLoadingDb] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("Highest Payout");
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
   const [issubmitting, setIssubmitting] = useState(false);
 
-  const filteredTasks = tasks.filter(t => {
+  useEffect(() => {
+    async function fetchCampaigns() {
+      try {
+        const res = await fetch(`/api/campaigns`);
+        const json = await res.json();
+        if (json.success) {
+          setDbCampaigns(json.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch DB campaigns", err);
+      } finally {
+        setIsLoadingDb(false);
+      }
+    }
+    fetchCampaigns();
+  }, []);
+
+  const filteredTasks = dbCampaigns.map(dbCamp => {
+    const onchainTask = tasks.find(t => t.title === dbCamp.title && t.creator.toString() === dbCamp.ownerWallet);
+    return {
+      ...dbCamp,
+      publicKey: onchainTask ? onchainTask.publicKey.toString() : dbCamp.campaignPda,
+      payoutsDistributed: onchainTask ? (onchainTask.payoutsDistributed.toNumber() / LAMPORTS_PER_SOL) : 0,
+      bountyTotal: dbCamp.totalDeposit,
+      payoutPerMeeting: dbCamp.payout || 0,
+    };
+  }).filter(t => {
     if (selectedCategory === "All") return true;
-    return t.category === selectedCategory;
-  })
-    .sort((a, b) => {
-      if (sortBy === "Highest Payout") return b.payoutPerMeeting.toNumber() - a.payoutPerMeeting.toNumber();
-      return 0;
-    });
+    return t.category === selectedCategory || (!t.category && selectedCategory === "General");
+  }).sort((a, b) => {
+    if (sortBy === "Highest Payout") return b.payoutPerMeeting - a.payoutPerMeeting;
+    return 0;
+  });
 
   const handleLogSubmission = async () => {
     if (!selectedTask) return;
-    setIssubmitting(true);
-    try {
-      toast.info("Transmitting meeting log...");
-      await updateTaskProgress(new PublicKey(selectedTask.publicKey));
-      toast.success("Reward unlocked. Check your balance.");
-      setSelectedTask(null);
-    } catch (err) {
-      toast.error("Network error. Try again.");
-      console.error(err);
-    } finally {
-      setIssubmitting(false);
+    if (!selectedTask.publicKey.startsWith("PENDING")) {
+      setIssubmitting(true);
+      try {
+        toast.info("Transmitting meeting log...");
+        await updateTaskProgress(new PublicKey(selectedTask.publicKey));
+        toast.success("Reward unlocked. Check your balance.");
+        setSelectedTask(null);
+      } catch (err) {
+        toast.error("Network error. Try again.");
+        console.error(err);
+      } finally {
+        setIssubmitting(false);
+      }
+    } else {
+      toast.error("This campaign is still syncing with the blockchain.");
     }
   };
 
@@ -185,10 +216,10 @@ export default function SalesPage() {
 
           <AnimatePresence mode="popLayout">
             {filteredTasks.map((task, i) => {
-              const bountyTotal = task.totalBudget.toNumber() / LAMPORTS_PER_SOL;
-              const bountyDistributed = task.payoutsDistributed.toNumber() / LAMPORTS_PER_SOL;
+              const bountyTotal = task.bountyTotal || 0;
+              const bountyDistributed = task.payoutsDistributed || 0;
               const bountyAvailable = bountyTotal - bountyDistributed;
-              const payout = task.payoutPerMeeting.toNumber() / LAMPORTS_PER_SOL;
+              const payout = task.payoutPerMeeting || 0;
 
               return (
                 <motion.div
@@ -275,31 +306,31 @@ export default function SalesPage() {
               initial={{ opacity: 0, scale: 0.98, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98, y: 10 }}
-              className="relative w-full max-w-lg bg-white rounded-[40px] shadow-2xl overflow-hidden border border-slate-100"
+              className="relative w-full max-w-lg bg-white rounded-[32px] md:rounded-[40px] shadow-2xl overflow-hidden border border-slate-100"
             >
-              <div className="p-10">
-                <div className="flex justify-between items-start mb-10">
+              <div className="p-6 md:p-10">
+                <div className="flex justify-between items-start mb-8 md:mb-10">
                   <div>
-                    <h3 className="text-2xl font-bold tracking-tight text-slate-900">Proof of Work</h3>
-                    <p className="text-slate-500 font-medium mt-1">Campaign: {selectedTask.title}</p>
+                    <h3 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900">Proof of Work</h3>
+                    <p className="text-slate-500 font-medium mt-1 text-sm md:text-base">Campaign: {selectedTask.title}</p>
                   </div>
-                  <button onClick={() => setSelectedTask(null)} className="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors text-slate-400"><X className="w-5 h-5" /></button>
+                  <button onClick={() => setSelectedTask(null)} className="p-2 md:p-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors text-slate-400"><X className="w-5 h-5" /></button>
                 </div>
 
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                   <div className="space-y-3">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Calendar / Meeting URL</label>
                     <div className="relative">
-                       <input type="url" placeholder="https://cal.com/..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-12 py-4 focus:outline-none focus:border-slate-300 transition-all font-semibold placeholder:text-slate-300" />
-                       <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-200" />
+                       <input type="url" placeholder="https://cal.com/..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-10 md:px-12 py-3 md:py-4 focus:outline-none focus:border-slate-300 transition-all font-semibold placeholder:text-slate-300 text-base md:text-sm" />
+                       <LinkIcon className="absolute left-3.5 md:left-4 top-1/2 -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 text-slate-200" />
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Prospect Email</label>
                     <div className="relative">
-                       <input type="email" placeholder="founder@company.com" className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-12 py-4 focus:outline-none focus:border-slate-300 transition-all font-semibold placeholder:text-slate-300" />
-                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-200" />
+                       <input type="email" placeholder="founder@company.com" className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-10 md:px-12 py-3 md:py-4 focus:outline-none focus:border-slate-300 transition-all font-semibold placeholder:text-slate-300 text-base md:text-sm" />
+                       <Mail className="absolute left-3.5 md:left-4 top-1/2 -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 text-slate-200" />
                     </div>
                   </div>
 

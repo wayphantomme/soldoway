@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
+import { Menu, X } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 
 const features = [
   { 
@@ -53,12 +55,17 @@ function FadeInUp({ children, delay = 0 }: { children: React.ReactNode, delay?: 
 export default function Home() {
   const { login, authenticated } = usePrivy();
   const router = useRouter();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (authenticated) {
+      router.push("/dashboard");
+    }
+  }, [authenticated, router]);
 
   const handleGetStarted = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (authenticated) {
-      router.push("/dashboard");
-    } else {
+    if (!authenticated) {
       login();
     }
   };
@@ -68,22 +75,47 @@ export default function Home() {
       {/* Header */}
       <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="text-xl font-bold tracking-tight">Soldoway</div>
+          <div className="text-xl font-bold tracking-tight z-50">Soldoway</div>
           <nav className="hidden md:flex gap-8 text-sm font-medium text-gray-500">
             <a href="#features" className="hover:text-black transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-black transition-colors">How it Works</a>
             <a href="#api" className="hover:text-black transition-colors">API</a>
             <a href="#docs" className="hover:text-black transition-colors">Docs</a>
           </nav>
-          <div className="flex items-center">
+          <div className="flex items-center gap-4 z-50">
             <button 
               onClick={handleGetStarted}
               className="bg-black text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-gray-800 transition-all shadow-sm hover:shadow-md cursor-pointer"
             >
               Launch App
             </button>
+            <button 
+              className="md:hidden p-2 text-gray-500 hover:text-black hover:bg-gray-50 rounded-lg transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="md:hidden border-b border-gray-100 bg-white overflow-hidden absolute w-full"
+            >
+              <nav className="flex flex-col px-6 py-4 gap-4 text-base font-semibold text-gray-600">
+                <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-black py-2">Features</a>
+                <a href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-black py-2">How it Works</a>
+                <a href="#api" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-black py-2">API</a>
+                <a href="#docs" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-black py-2">Docs</a>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       <main className="mx-auto px-6 mt-20 space-y-32">

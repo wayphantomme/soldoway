@@ -3,15 +3,8 @@
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { PropsWithChildren, useMemo, useEffect, useState } from "react";
-import { ClusterProvider } from "./cluster-context";
-import { WalletProvider as KitWalletProvider } from "../lib/wallet/context";
-import { SolanaClientProvider } from "../lib/solana-client-context";
-import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 import dynamic from "next/dynamic";
-import "@solana/wallet-adapter-react-ui/styles.css";
-import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
 
 const PrivyProvider = dynamic(
   () => import("@privy-io/react-auth").then((mod) => mod.PrivyProvider),
@@ -20,12 +13,15 @@ const PrivyProvider = dynamic(
 
 export function Providers({ children }: PropsWithChildren) {
   const network = clusterApiUrl("devnet");
-  const wallets = useMemo(() => [], []);
   const [mounted, setMounted] = useState(false);
-  const solanaConnectors = toSolanaWalletConnectors();
+  const [solanaConnectors, setSolanaConnectors] = useState<any>(null);
 
   useEffect(() => {
-    setMounted(true);
+    // Dynamically import solana connectors to prevent SSR build errors
+    import("@privy-io/react-auth/solana").then((mod) => {
+      setSolanaConnectors(mod.toSolanaWalletConnectors());
+      setMounted(true);
+    }).catch(console.error);
   }, []);
 
   return (
@@ -43,6 +39,7 @@ export function Providers({ children }: PropsWithChildren) {
                 walletList: ["phantom", "solflare"],
                 showWalletLoginFirst: true,
               },
+              // @ts-ignore - Bypass type error for solanaClusters in this Privy version
               solanaClusters: [{ name: "devnet", rpcUrl: network }],
               embeddedWallets: {
                 solana: {
@@ -56,18 +53,8 @@ export function Providers({ children }: PropsWithChildren) {
               },
             }}
           >
-            <ConnectionProvider endpoint={network}>
-              <WalletProvider wallets={wallets} autoConnect>
-                <WalletModalProvider>
-                  <ClusterProvider>
-                    <SolanaClientProvider>
-                      <KitWalletProvider>{children}</KitWalletProvider>
-                    </SolanaClientProvider>
-                    <Toaster position="bottom-right" richColors />
-                  </ClusterProvider>
-                </WalletModalProvider>
-              </WalletProvider>
-            </ConnectionProvider>
+            <Toaster position="bottom-right" richColors />
+            {children}
           </PrivyProvider>
         ) : (
           <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-900 p-6">

@@ -3,12 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { ellipsify } from "../lib/explorer";
-import { useCluster } from "./cluster-context";
 import { Copy, ExternalLink, LogOut, Key } from "lucide-react";
 
 export function WalletButton() {
   const { ready, authenticated, user, login, logout, exportWallet } = usePrivy();
-  const { getExplorerUrl } = useCluster();
   
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -100,7 +98,7 @@ export function WalletButton() {
             
             {address && (
               <a
-                href={getExplorerUrl(`/address/${address}`)}
+                href={`https://explorer.solana.com/address/${address}?cluster=devnet`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"

@@ -13,12 +13,11 @@ import {
   getWithdrawInstructionAsync,
 } from "../generated/vault";
 import { parseTransactionError } from "../lib/errors";
-import { useCluster } from "./cluster-context";
 
 export function VaultCard() {
   const { wallet, signer, status } = useWallet();
   const { send, isSending } = useSendTransaction();
-  const { getExplorerUrl } = useCluster();
+  const getExplorerUrl = (path: string) => `https://explorer.solana.com${path}?cluster=devnet`;
 
   const [amount, setAmount] = useState("");
   const [vaultAddress, setVaultAddress] = useState<Address | null>(null);

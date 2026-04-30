@@ -1,7 +1,7 @@
-import { useConnection, useAnchorWallet } from '@solana/wallet-adapter-react';
+
 import { useWallets } from '@privy-io/react-auth';
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
-import { PublicKey, SystemProgram, LAMPORTS_PER_SOL, Transaction, VersionedTransaction } from '@solana/web3.js';
+import { PublicKey, SystemProgram, LAMPORTS_PER_SOL, Transaction, VersionedTransaction, Connection } from '@solana/web3.js';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Buffer } from 'buffer';
 import idl from '@/app/anchor/vault.json';
@@ -33,37 +33,32 @@ export interface UserProfile {
 }
 
 export const useSoldoway = () => {
-  const { connection } = useConnection();
-  const anchorWallet = useAnchorWallet();
+  const connection = useMemo(() => new Connection("https://api.devnet.solana.com", "confirmed"), []);
   const { wallets } = useWallets();
+  
+  // Find the first available Solana wallet connected via Privy
+  const primaryWallet = useMemo(() => {
+    return wallets.find((w) => (w as any).chainType === 'solana' || !w.address.startsWith('0x')) || null;
+  }, [wallets]);
+
   const [tasks, setTasks] = useState<TaskAccount[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Find the first available Solana wallet connected via Privy
-  const privySolanaWallet = useMemo(() => {
-    return wallets.find((w) => (w as any).chainType === 'solana' || !w.address.startsWith('0x'));
-  }, [wallets]);
-
   // Bridge Privy Wallet to standard AnchorWallet interface
   const wallet = useMemo(() => {
-    if (anchorWallet) return anchorWallet;
-    
-    if (privySolanaWallet) {
+    if (primaryWallet) {
       return {
-        publicKey: new PublicKey(privySolanaWallet.address),
+        publicKey: new PublicKey(primaryWallet.address),
         signTransaction: async <T extends Transaction | VersionedTransaction>(tx: T): Promise<T> => {
-           // Privy solana wallets expose signTransaction
-           // Note: We might need to handle provider casting based on Privy's exact version, 
-           // but generic await on signTransaction works for their standard integration.
            // @ts-ignore - bypassing strict type checking for Privy's sign method
-           return await privySolanaWallet.signTransaction(tx);
+           return await primaryWallet.signTransaction(tx);
         },
         signAllTransactions: async <T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]> => {
            const signedTxs = [];
            for (const tx of txs) {
               // @ts-ignore
-             signedTxs.push(await privySolanaWallet.signTransaction(tx));
+             signedTxs.push(await primaryWallet.signTransaction(tx));
            }
            return signedTxs;
         }
@@ -71,7 +66,7 @@ export const useSoldoway = () => {
     }
     
     return null;
-  }, [anchorWallet, privySolanaWallet]);
+  }, [primaryWallet]);
 
   const program = useMemo(() => {
     if (!wallet) return null;
@@ -215,13 +210,27 @@ export const useSoldoway = () => {
         program.programId
       );
 
+      const STAKE_POOL_PROGRAM_ID = new PublicKey("SPoo1Ku8WFXoNDMHPsrGSTSG1Y47rzgn41SLUNakuKz");
+      const JITO_POOL = new PublicKey("Jito4APyf642FS7MyCGQiGZHKU1ptSRZAM32w7EzAKG"); // Dummy devnet Jito pool
+      const JITO_POOL_MINT = new PublicKey("J1toso1uKFsLaRfwbEpmA1R7oJ4oM7EwEQK1K3uBfXX");
+
+      // Find Associated Token Account for Vault (PDA)
+      const [vaultJitosolAccount] = PublicKey.findProgramAddressSync(
+        [
+          taskPda.toBuffer(),
+          new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA").toBuffer(),
+          JITO_POOL_MINT.toBuffer()
+        ],
+        new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL")
+      );
+
       console.log("Sending Transaction with accounts:", {
         creator: wallet.publicKey.toString(),
         task: taskPda.toString(),
         userProfile: profilePda.toString(),
       });
 
-      const tx = await program.methods
+      const transaction = await program.methods
         .createTask(
           title, 
           companyName, 
@@ -234,12 +243,33 @@ export const useSoldoway = () => {
           creator: wallet.publicKey,
           task: taskPda,
           userProfile: profilePda,
+          stakePool: JITO_POOL,
+          stakePoolWithdrawAuthority: SystemProgram.programId, // Dummy
+          reserveStake: SystemProgram.programId, // Dummy
+          managerFeeAccount: SystemProgram.programId, // Dummy
+          referralPoolAccount: SystemProgram.programId, // Dummy
+          poolMint: JITO_POOL_MINT,
+          vaultJitosolAccount: vaultJitosolAccount,
+          tokenProgram: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+          associatedTokenProgram: new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"),
           systemProgram: SystemProgram.programId,
+          stakePoolProgram: STAKE_POOL_PROGRAM_ID,
         })
-        .rpc();
+        .transaction();
+
+      const { blockhash } = await connection.getLatestBlockhash('confirmed');
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = wallet.publicKey;
+
+      console.log("Requesting Privy to send transaction...");
+      // Using Privy's native sendTransaction method instead of Anchor's rpc()
+      const signature = await (primaryWallet as any).sendTransaction(transaction, connection, { skipPreflight: true });
+      
+      console.log("Transaction sent! Signature:", signature);
+      await connection.confirmTransaction(signature, "confirmed");
 
       await fetchTasks();
-      return tx;
+      return signature;
     } catch (err) {
       console.error("Detailed error in createTask:", err);
       throw err;
