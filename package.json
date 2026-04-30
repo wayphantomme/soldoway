@@ -1,6 +1,7 @@
 {
   "name": "Soldoway",
   "scripts": {
+    "postinstall": "prisma generate",
     "anchor-build": "cd anchor && anchor build",
     "anchor-test": "cd anchor && anchor test --skip-deploy",
     "build": "next build",
