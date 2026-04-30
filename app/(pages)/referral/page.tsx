@@ -1,5 +1,4 @@
 "use client";
-
 import { motion } from "framer-motion";
 import { Users, Copy, Check, TrendingUp, ShieldCheck, Zap, ExternalLink } from "lucide-react";
 import { useState, useMemo } from "react";
@@ -21,7 +20,9 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: nu
   );
 }
 
-export default function ReferralPage() {
+import dynamic from "next/dynamic";
+
+const ReferralPage = () => {
   const { user } = usePrivy();
   const address = user?.wallet?.address || user?.linkedAccounts?.find((acc) => acc.type === 'wallet')?.address;
   const [copied, setCopied] = useState(false);
@@ -188,3 +189,5 @@ export default function ReferralPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(ReferralPage), { ssr: false });

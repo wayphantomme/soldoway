@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { WalletButton } from "../components/wallet-button";
+import { ClientOnly } from "../components/client-only";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -63,7 +64,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main App Content Area */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        {children}
+        <ClientOnly>
+          {children}
+        </ClientOnly>
       </main>
     </div>
   );

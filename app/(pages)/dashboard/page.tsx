@@ -30,7 +30,9 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
   );
 }
 
-export default function DashboardPage() {
+import dynamic from "next/dynamic";
+
+const DashboardPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { tasks, loading, createTask } = useSoldoway();
   const { user } = usePrivy();
@@ -382,3 +384,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(DashboardPage), { ssr: false });

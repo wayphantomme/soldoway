@@ -52,7 +52,9 @@ function FadeInUp({ children, delay = 0 }: { children: React.ReactNode, delay?: 
   );
 }
 
-export default function Home() {
+import dynamic from "next/dynamic";
+
+const Home = () => {
   const { login, authenticated } = usePrivy();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -270,3 +272,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(Home), { ssr: false });

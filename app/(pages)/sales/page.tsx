@@ -28,7 +28,9 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: nu
   );
 }
 
-export default function SalesPage() {
+import dynamic from "next/dynamic";
+
+const SalesPage = () => {
   const { tasks, loading, updateTaskProgress } = useSoldoway();
   const [dbCampaigns, setDbCampaigns] = useState<any[]>([]);
   const [isLoadingDb, setIsLoadingDb] = useState(true);
@@ -357,3 +359,5 @@ export default function SalesPage() {
     </div>
   );
 }
+
+export default dynamic(() => Promise.resolve(SalesPage), { ssr: false });

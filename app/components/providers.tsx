@@ -4,12 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import { PropsWithChildren, useMemo, useEffect, useState } from "react";
 import { clusterApiUrl } from "@solana/web3.js";
-import dynamic from "next/dynamic";
-
-const PrivyProvider = dynamic(
-  () => import("@privy-io/react-auth").then((mod) => mod.PrivyProvider),
-  { ssr: false }
-);
+import { PrivyProvider } from "@privy-io/react-auth";
 
 export function Providers({ children }: PropsWithChildren) {
   const network = clusterApiUrl("devnet");
