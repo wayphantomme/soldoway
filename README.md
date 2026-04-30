@@ -1,166 +1,80 @@
-# Soldoway
+# Soldoway 🚀
+**The Decentralized Task Management & Sales Payout Platform**
 
-Next.js starter with Tailwind CSS, `@solana/kit`, and an Anchor vault program example.
+Soldoway is a Web3 platform built on the **Solana** blockchain designed to revolutionize how businesses manage and pay their sales force. By leveraging **Yield-Bearing Escrows**, businesses can deploy marketing campaigns where deposited funds don't sit idle—they generate real-time yield in DeFi protocols (Kamino/Jito) while awaiting sales claim verification.
 
-## Getting Started
+---
 
-```shell
-npx -y create-solana-dapp@latest -t solana-foundation/templates/kit/Soldoway
-```
+## ✨ Key Features
 
-```shell
-npm install
-npm run setup   # Builds the Anchor program and generates the TypeScript client
-npm run dev
-```
+*   **Yield-Bearing Escrow**: Deposits for sales missions are automatically routed to **Kamino Finance** or **Jito** vaults via CPI (Cross-Program Invocation) to earn interest for the business owner.
+*   **Privy Wallet Integration**: Provides a seamless, mobile-friendly onboarding experience with support for email, social, and gasless Solana transactions.
+*   **Mobile-First Dashboard**: A fully responsive UI designed specifically for the mobile-active workforce in regions like Bali and beyond.
+*   **Hybrid Data Architecture**: Combines the security of **On-chain** Solana transactions with the speed of **Off-chain** PostgreSQL (Prisma) metadata for a fast and reliable user experience.
+*   **Real-time Partner Marketplace**: A dedicated sales page where partners can browse active missions, strategies, and payout capacities directly from the database.
 
-Open [http://localhost:3000](http://localhost:3000), connect your wallet, and interact with the vault.
+---
 
-## What's Included
+## 🛠️ Tech Stack
 
-- **Wallet connection** via wallet-standard with auto-discovery and dropdown UI
-- **Cluster switching** — devnet, testnet, mainnet, and localnet from the header
-- **Wallet balance** display with airdrop button (devnet/testnet/localnet)
-- **SOL Vault program** — deposit and withdraw SOL from a personal PDA vault
-- **Toast notifications** with explorer links for every transaction
-- **Error handling** — human-readable messages for common Solana and program errors
-- **Codama-generated client** — type-safe program interactions using `@solana/kit`
-- **Tailwind CSS v4** with light/dark mode toggle
+*   **Frontend**: Next.js 16 (Turbopack), Tailwind CSS.
+*   **Blockchain**: Solana, Anchor Framework (Rust).
+*   **Authentication & Wallet Management**: Privy.
+*   **Database & ORM**: PostgreSQL, Prisma.
+*   **Deployment**: Vercel.
 
-## Stack
+---
 
-| Layer          | Technology                       |
-| -------------- | -------------------------------- |
-| Frontend       | Next.js 16, React 19, TypeScript |
-| Styling        | Tailwind CSS v4                  |
-| Solana Client  | `@solana/kit`, wallet-standard   |
-| Program Client | Codama-generated, `@solana/kit`  |
-| Program        | Anchor (Rust)                    |
-
-## Project Structure
-
-```
-├── app/
-│   ├── components/
-│   │   ├── cluster-context.tsx  # Cluster state (React context + localStorage)
-│   │   ├── cluster-select.tsx   # Cluster switcher dropdown
-│   │   ├── grid-background.tsx  # Solana-branded decorative grid
-│   │   ├── providers.tsx        # Wallet + theme providers
-│   │   ├── theme-toggle.tsx     # Light/dark mode toggle
-│   │   ├── vault-card.tsx       # Vault deposit/withdraw UI
-│   │   └── wallet-button.tsx    # Wallet connect/disconnect dropdown
-│   ├── generated/vault/        # Codama-generated program client
-│   ├── lib/
-│   │   ├── wallet/             # Wallet-standard connection layer
-│   │   │   ├── types.ts        # Wallet types
-│   │   │   ├── standard.ts     # Wallet discovery + session creation
-│   │   │   ├── signer.ts       # WalletSession → TransactionSigner
-│   │   │   └── context.tsx     # WalletProvider + useWallet() hook
-│   │   ├── hooks/
-│   │   │   ├── use-balance.ts  # SWR-based balance fetching
-│   │   │   └── use-send-transaction.ts  # Transaction send with loading state
-│   │   ├── cluster.ts          # Cluster endpoints + RPC factory
-│   │   ├── lamports.ts         # SOL/lamports conversion
-│   │   ├── send-transaction.ts # Transaction build + sign + send pipeline
-│   │   ├── errors.ts           # Transaction error parsing
-│   │   └── explorer.ts         # Explorer URL builder + address helpers
-│   └── page.tsx                # Main page
-├── anchor/                     # Anchor workspace
-│   └── programs/vault/         # Vault program (Rust)
-└── codama.json                 # Codama client generation config
-```
-
-## Local Development
-
-To test against a local validator instead of devnet:
-
-1. **Start a local validator**
-
-   ```bash
-   solana-test-validator
-   ```
-
-2. **Deploy the program locally**
-
-   ```bash
-   solana config set --url localhost
-   cd anchor
-   anchor build
-   anchor deploy
-   cd ..
-   npm run codama:js   # Regenerate client with local program ID
-   ```
-
-3. **Switch to localnet** in the app using the cluster selector in the header.
-
-## Deploy Your Own Vault
-
-The included vault program is already deployed to devnet. To deploy your own:
+## 🚀 Getting Started
 
 ### Prerequisites
+*   Node.js 18+
+*   Solana CLI & Anchor (for contract development)
+*   PostgreSQL Instance
 
-- [Rust](https://rustup.rs/)
-- [Solana CLI](https://solana.com/docs/intro/installation)
-- [Anchor](https://www.anchor-lang.com/docs/installation)
+### Local Installation
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/wayphantomme/soldoway.git
+    cd soldoway
+    ```
 
-### Steps
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-1. **Configure Solana CLI for devnet**
+3.  **Setup Environment Variables:**
+    Create a `.env` file in the root directory:
+    ```env
+    DATABASE_URL="your_postgresql_url"
+    NEXT_PUBLIC_PRIVY_APP_ID="your_privy_id"
+    NEXT_PUBLIC_SOLANA_RPC="your_rpc_url"
+    ```
 
-   ```bash
-   solana config set --url devnet
-   ```
+4.  **Initialize Prisma:**
+    ```bash
+    npx prisma generate
+    ```
 
-2. **Create a wallet (if needed) and fund it**
+5.  **Run Development Server:**
+    ```bash
+    npm run dev
+    ```
 
-   ```bash
-   solana-keygen new
-   solana airdrop 2
-   ```
+---
 
-3. **Build and deploy the program**
+## 🏗️ Deployment Note (Vercel)
 
-   ```bash
-   cd anchor
-   anchor build
-   anchor keys sync    # Updates program ID in source
-   anchor build        # Rebuild with new ID
-   anchor deploy
-   cd ..
-   ```
-
-4. **Regenerate the client and restart**
-   ```bash
-   npm run setup   # Rebuilds program and regenerates client
-   npm run dev
-   ```
-
-## Testing
-
-Tests use [LiteSVM](https://github.com/LiteSVM/litesvm), a fast lightweight Solana VM for testing.
-
-```bash
-npm run anchor-build   # Build the program first
-npm run anchor-test    # Run tests
+This project uses **Prisma**. To ensure successful builds on Vercel, the `package.json` includes a `postinstall` script to prevent client initialization errors:
+```json
+"scripts": {
+  "postinstall": "prisma generate",
+  "build": "next build"
+}
 ```
 
-The tests are in `anchor/programs/vault/src/tests.rs` and automatically use the program ID from `declare_id!`.
+---
 
-## Regenerating the Client
-
-If you modify the program, regenerate the TypeScript client:
-
-```bash
-npm run setup   # Or: npm run anchor-build && npm run codama:js
-```
-
-This uses [Codama](https://github.com/codama-idl/codama) to generate a type-safe client from the Anchor IDL.
-
-## Learn More
-
-- [Solana Docs](https://solana.com/docs) — core concepts and guides
-- [Anchor Docs](https://www.anchor-lang.com/docs/introduction) — program development framework
-- [Deploying Programs](https://solana.com/docs/programs/deploying) — deployment guide
-- [@solana/kit](https://github.com/anza-xyz/kit) — Solana JavaScript SDK
-- [Codama](https://github.com/codama-idl/codama) — client generation from IDL
-# soldoway
+## 📜 License
+Distributed under the MIT License. See `LICENSE` for more information.
