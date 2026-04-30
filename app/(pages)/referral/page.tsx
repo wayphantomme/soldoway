@@ -1,10 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, Copy, Check, TrendingUp, ShieldCheck, Zap } from "lucide-react";
+import { Users, Copy, Check, TrendingUp, ShieldCheck, Zap, ExternalLink } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
 import { toast } from "sonner";
+import { usePrivy } from "@privy-io/react-auth";
+import { useSoldoway } from "../dashboard/use-soldoway";
+import { ellipsify } from "../../lib/explorer";
+import { useCluster } from "../../components/cluster-context";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: number }) {
   return (
@@ -19,18 +23,22 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: nu
 }
 
 export default function ReferralPage() {
-  const { publicKey } = useWallet();
+  const { user } = usePrivy();
+  const address = user?.wallet?.address || user?.linkedAccounts?.find((acc) => acc.type === 'wallet')?.address;
   const [copied, setCopied] = useState(false);
+  
+  const { userProfile, referrals } = useSoldoway();
+  const { getExplorerUrl } = useCluster();
 
   // Dynamic link generation
   const inviteLink = useMemo(() => {
-    if (!publicKey) return "Connect Wallet to see link";
+    if (!address) return "Connect Wallet to see link";
     const base = typeof window !== "undefined" ? window.location.origin : "https://soldoway.app";
-    return `${base}/r/${publicKey.toString()}`;
-  }, [publicKey]);
+    return `${base}/r/${address}`;
+  }, [address]);
 
   const handleCopy = () => {
-    if (!publicKey) {
+    if (!address) {
       toast.error("Please connect your wallet first");
       return;
     }
@@ -40,9 +48,17 @@ export default function ReferralPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const totalEarnedStr = userProfile 
+    ? (userProfile.totalEarned.toNumber() / LAMPORTS_PER_SOL).toFixed(2) + " SOL" 
+    : "0.00 SOL";
+
+  const totalReferralsStr = userProfile
+    ? userProfile.referralsCount.toString()
+    : "0";
+
   const stats = [
-    { label: "Total Referrals", value: "0", sub: "Partners joined", icon: Users },
-    { label: "Total Earnings", value: "0.00 SOL", sub: "2% Kickback on-chain", icon: TrendingUp },
+    { label: "Total Referrals", value: totalReferralsStr, sub: "Partners joined", icon: Users },
+    { label: "Total Earnings", value: totalEarnedStr, sub: "2% Kickback on-chain", icon: TrendingUp },
   ];
 
   return (
@@ -118,6 +134,56 @@ export default function ReferralPage() {
             </div>
           </FadeIn>
         ))}
+      </section>
+
+      {/* Your Network Section */}
+      <section>
+        <FadeIn delay={0.4}>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Your Network</h2>
+            <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-semibold">
+              {referrals.length} active
+            </span>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-[32px] overflow-hidden shadow-sm">
+            {referrals.length === 0 ? (
+              <div className="p-12 text-center flex flex-col items-center">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                  <Users className="w-8 h-8 text-slate-300" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-1">No referrals yet</h3>
+                <p className="text-slate-500 font-medium max-w-sm mx-auto">
+                  Share your link to start growing your network and earning yield.
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {referrals.map((ref, idx) => (
+                  <div key={idx} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow-inner">
+                        {ref.owner.toString().substring(0, 2)}
+                      </div>
+                      <div>
+                        <p className="font-mono text-sm font-bold text-slate-900">{ellipsify(ref.owner.toString(), 6)}</p>
+                        <p className="text-xs text-slate-500 font-medium mt-0.5">Joined via your link</p>
+                      </div>
+                    </div>
+                    <a
+                      href={getExplorerUrl(`/address/${ref.owner.toString()}`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2.5 bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-all"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </FadeIn>
       </section>
 
     </div>

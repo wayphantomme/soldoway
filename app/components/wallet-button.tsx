@@ -1,23 +1,21 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useWallet } from "../lib/wallet/context";
-import { useBalance } from "../lib/hooks/use-balance";
-import { lamportsToSolString } from "../lib/lamports";
+import { usePrivy } from "@privy-io/react-auth";
 import { ellipsify } from "../lib/explorer";
 import { useCluster } from "./cluster-context";
+import { Copy, ExternalLink, LogOut, Key } from "lucide-react";
 
 export function WalletButton() {
-  const { connectors, connect, disconnect, wallet, status, error } =
-    useWallet();
-
+  const { ready, authenticated, user, login, logout, exportWallet } = usePrivy();
   const { getExplorerUrl } = useCluster();
+  
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const address = wallet?.account.address;
-  const balance = useBalance(address);
+  // Fallback to first wallet if embedded isn't explicitly tagged
+  const address = user?.wallet?.address || user?.linkedAccounts?.find((acc) => acc.type === 'wallet')?.address;
 
   const open = () => setIsOpen(true);
   const close = () => setIsOpen(false);
@@ -39,57 +37,23 @@ export function WalletButton() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (status !== "connected") {
+  if (!ready) {
+    return (
+      <div className="relative" ref={ref}>
+        <div className="h-10 w-28 animate-pulse rounded-full bg-slate-200" />
+      </div>
+    );
+  }
+
+  if (!authenticated) {
     return (
       <div className="relative" ref={ref}>
         <button
-          onClick={() => (isOpen ? close() : open())}
-          className="cursor-pointer rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground shadow-xs transition hover:bg-primary/90"
+          onClick={login}
+          className="cursor-pointer rounded-full bg-black px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:scale-105 hover:bg-gray-900 active:scale-95"
         >
-          Connect Wallet
+          Sign In
         </button>
-
-        {isOpen && (
-          <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-border-low bg-card p-3 shadow-lg">
-            <p className="mb-2 text-xs font-medium text-muted">
-              Choose a wallet
-            </p>
-            <div className="space-y-1">
-              {connectors.map((connector) => (
-                <button
-                  key={connector.id}
-                  onClick={async () => {
-                    try {
-                      await connect(connector.id);
-                      close();
-                    } catch {
-                      // connection errors are surfaced through context state
-                    }
-                  }}
-                  disabled={status === "connecting"}
-                  className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition hover:bg-cream disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  {connector.icon && (
-                    <img
-                      src={connector.icon}
-                      alt=""
-                      className="h-5 w-5 rounded"
-                    />
-                  )}
-                  <span>{connector.name}</span>
-                </button>
-              ))}
-            </div>
-            {status === "connecting" && (
-              <p className="mt-2 text-xs text-muted">Connecting...</p>
-            )}
-            {error != null && (
-              <p className="mt-2 text-xs text-destructive">
-                {error instanceof Error ? error.message : String(error)}
-              </p>
-            )}
-          </div>
-        )}
       </div>
     );
   }
@@ -98,54 +62,79 @@ export function WalletButton() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => (isOpen ? close() : open())}
-        className="flex cursor-pointer items-center gap-2 rounded-lg border border-border-low bg-card px-3 py-2 text-xs font-medium transition hover:bg-cream"
+        className="flex cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition-all hover:bg-slate-50 hover:shadow"
       >
-        <span className="h-2 w-2 rounded-full bg-green-500" />
-        <span className="font-mono">{ellipsify(address!, 4)}</span>
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500"></span>
+        </span>
+        <span className="font-mono">{address ? ellipsify(address, 4) : "Privy"}</span>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-border-low bg-card p-4 shadow-lg">
-          <div className="mb-3">
-            <p className="text-xs text-muted">Balance</p>
-            <p className="text-lg font-bold tabular-nums">
-              {balance.lamports != null
-                ? lamportsToSolString(balance.lamports)
-                : "\u2014"}{" "}
-              <span className="text-sm font-normal text-muted">SOL</span>
-            </p>
+        <div className="absolute right-0 top-full z-50 mt-3 w-72 rounded-2xl border border-slate-100 bg-white p-2 shadow-xl ring-1 ring-black/5">
+          {/* Avatar and Address Section */}
+          <div className="mb-2 flex items-center gap-3 border-b border-slate-100 p-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 font-bold text-white shadow-inner">
+              {address ? address.substring(0, 2) : "PR"}
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-900">
+                {address ? ellipsify(address, 4) : "Wallet"}
+              </p>
+              <p className="text-xs text-slate-500">Connected via Privy</p>
+            </div>
           </div>
 
-          <div className="mb-3 rounded-lg border border-border-low bg-cream/50 px-3 py-2">
-            <p className="break-all font-mono text-xs">{address}</p>
-          </div>
+          {/* List Items */}
+          <div className="flex flex-col gap-1 p-1">
+            {address && (
+              <button
+                onClick={handleCopy}
+                className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
+              >
+                <Copy className="h-4 w-4 text-slate-400" />
+                {copied ? "Address Copied!" : "Copy Address"}
+              </button>
+            )}
+            
+            {address && (
+              <a
+                href={getExplorerUrl(`/address/${address}`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
+                onClick={close}
+              >
+                <ExternalLink className="h-4 w-4 text-slate-400" />
+                View on Explorer
+              </a>
+            )}
 
-          <div className="flex gap-2">
             <button
-              onClick={handleCopy}
-              className="flex-1 cursor-pointer rounded-lg border border-border-low bg-card px-3 py-2 text-xs font-medium transition hover:bg-cream"
+              onClick={() => {
+                exportWallet();
+                close();
+              }}
+              className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
             >
-              {copied ? "Copied!" : "Copy address"}
+              <Key className="h-4 w-4 text-slate-400" />
+              Export Wallet
             </button>
-            <a
-              href={getExplorerUrl(`/address/${address}`)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 rounded-lg border border-border-low bg-card px-3 py-2 text-center text-xs font-medium transition hover:bg-cream"
-            >
-              Explorer
-            </a>
-          </div>
 
-          <button
-            onClick={() => {
-              disconnect();
-              close();
-            }}
-            className="mt-2 w-full cursor-pointer rounded-lg border border-border-low bg-card px-3 py-2 text-xs font-medium text-destructive transition hover:bg-destructive/10"
-          >
-            Disconnect
-          </button>
+            <div className="my-1 h-px w-full bg-slate-100" />
+
+            <button
+              onClick={() => {
+                logout();
+                close();
+              }}
+              className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-50 active:bg-red-100"
+            >
+              <LogOut className="h-4 w-4 text-red-500" />
+              Disconnect
+            </button>
+          </div>
         </div>
       )}
     </div>

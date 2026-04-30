@@ -1,6 +1,7 @@
 import { useConnection, useAnchorWallet } from '@solana/wallet-adapter-react';
+import { useWallets } from '@privy-io/react-auth';
 import { Program, AnchorProvider, BN } from '@coral-xyz/anchor';
-import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { PublicKey, SystemProgram, LAMPORTS_PER_SOL, Transaction, VersionedTransaction } from '@solana/web3.js';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Buffer } from 'buffer';
 import idl from '@/app/anchor/vault.json';
@@ -33,14 +34,48 @@ export interface UserProfile {
 
 export const useSoldoway = () => {
   const { connection } = useConnection();
-  const wallet = useAnchorWallet();
+  const anchorWallet = useAnchorWallet();
+  const { wallets } = useWallets();
   const [tasks, setTasks] = useState<TaskAccount[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Find the first available Solana wallet connected via Privy
+  const privySolanaWallet = useMemo(() => {
+    return wallets.find((w) => (w as any).chainType === 'solana' || !w.address.startsWith('0x'));
+  }, [wallets]);
+
+  // Bridge Privy Wallet to standard AnchorWallet interface
+  const wallet = useMemo(() => {
+    if (anchorWallet) return anchorWallet;
+    
+    if (privySolanaWallet) {
+      return {
+        publicKey: new PublicKey(privySolanaWallet.address),
+        signTransaction: async <T extends Transaction | VersionedTransaction>(tx: T): Promise<T> => {
+           // Privy solana wallets expose signTransaction
+           // Note: We might need to handle provider casting based on Privy's exact version, 
+           // but generic await on signTransaction works for their standard integration.
+           // @ts-ignore - bypassing strict type checking for Privy's sign method
+           return await privySolanaWallet.signTransaction(tx);
+        },
+        signAllTransactions: async <T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]> => {
+           const signedTxs = [];
+           for (const tx of txs) {
+              // @ts-ignore
+             signedTxs.push(await privySolanaWallet.signTransaction(tx));
+           }
+           return signedTxs;
+        }
+      };
+    }
+    
+    return null;
+  }, [anchorWallet, privySolanaWallet]);
+
   const program = useMemo(() => {
     if (!wallet) return null;
-    const provider = new AnchorProvider(connection, wallet, { 
+    const provider = new AnchorProvider(connection, wallet as any, { 
       commitment: 'confirmed',
       preflightCommitment: 'confirmed',
     });
@@ -65,6 +100,8 @@ export const useSoldoway = () => {
     }
   }, [program]);
 
+  const [referrals, setReferrals] = useState<UserProfile[]>([]);
+
   const fetchUserProfile = useCallback(async () => {
     if (!program || !wallet?.publicKey) return;
     try {
@@ -80,12 +117,32 @@ export const useSoldoway = () => {
     }
   }, [program, wallet?.publicKey]);
 
+  const fetchReferrals = useCallback(async () => {
+    if (!program || !wallet?.publicKey) return;
+    try {
+      const profileAccount = (program.account as any).userProfile || (program.account as any).UserProfile;
+      const allProfiles = await profileAccount.all();
+      const userReferrals = allProfiles
+        .filter((p: any) => p.account.referrer.toString() === wallet.publicKey.toString() && p.account.owner.toString() !== wallet.publicKey.toString())
+        .map((p: any) => ({
+          owner: p.account.owner,
+          referrer: p.account.referrer,
+          totalEarned: p.account.totalEarned,
+          referralsCount: p.account.referralsCount,
+        }));
+      setReferrals(userReferrals);
+    } catch (err) {
+      console.error("Error fetching referrals:", err);
+    }
+  }, [program, wallet?.publicKey]);
+
   useEffect(() => {
     if (program) {
       fetchTasks();
       fetchUserProfile();
+      fetchReferrals();
     }
-  }, [program, fetchTasks, fetchUserProfile]);
+  }, [program, fetchTasks, fetchUserProfile, fetchReferrals]);
 
   const initializeUser = async (referrerStr?: string) => {
     if (!program || !wallet?.publicKey) throw new Error("Wallet not connected");
@@ -192,6 +249,13 @@ export const useSoldoway = () => {
   const updateTaskProgress = async (taskPda: PublicKey) => {
     if (!program || !wallet?.publicKey) throw new Error("Wallet not connected");
     try {
+      // NOTE: For true Gasless/Account Abstraction on Solana via Privy/x402, 
+      // you would typically construct the instruction here, serialize it, 
+      // and send it to your backend relayer (e.g. `/api/sponsor`) to be signed 
+      // as the fee payer before submitting.
+      //
+      // Below is the standard flow, relying on the Privy Embedded Wallet to sign 
+      // and pay if it holds SOL.
       const tx = await program.methods
         .updateTask()
         .accounts({
@@ -211,9 +275,11 @@ export const useSoldoway = () => {
     tasks,
     loading,
     userProfile,
+    referrals,
     createTask,
     updateTaskProgress,
     refreshTasks: fetchTasks,
+    refreshReferrals: fetchReferrals,
     initializeUser
   };
 };

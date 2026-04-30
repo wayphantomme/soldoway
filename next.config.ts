@@ -7,12 +7,32 @@ const nextConfig: NextConfig = {
   turbopack: {
     resolveAlias: {
       fs: { browser: "./empty-module.js" },
+      net: { browser: "./empty-module.js" },
+      tls: { browser: "./empty-module.js" },
+      crypto: { browser: "./empty-module.js" },
+      os: { browser: "./empty-module.js" },
+      "pino-pretty": { browser: "./empty-module.js" },
+      "why-is-node-running": { browser: "./empty-module.js" },
+      "lokijs": { browser: "./empty-module.js" },
+      "encoding": { browser: "./empty-module.js" },
     },
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      config.resolve.fallback = { ...config.resolve.fallback, fs: false };
+      config.resolve.fallback = { 
+        ...config.resolve.fallback, 
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+        os: false,
+        "pino-pretty": false,
+        "why-is-node-running": false,
+        "lokijs": false,
+        "encoding": false,
+      };
     }
+    config.externals.push("pino-pretty", "lokijs", "encoding");
     return config;
   },
 };
