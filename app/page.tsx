@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { Zap, ArrowUpRight, Code, Network, XCircle, CheckCircle2, Shield, Users } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { usePrivy } from "@privy-io/react-auth";
+import { useRouter } from "next/navigation";
 
 const features = [
   { 
@@ -24,15 +25,15 @@ const features = [
   },
   { 
     icon: Zap, 
-    title: "Zero-Gas Infrastructure", 
-    desc: "Powered by x402, we remove the \"SOL hurdle.\" Sales partners simply sign, and Soldoway handles the transaction costs behind the scenes." 
+    title: "Zero-Gas Experience", 
+    desc: "Powered by Privy, we remove the \"SOL hurdle.\" Sales partners simply sign in with Email or Google, and Soldoway handles the transaction costs behind the scenes." 
   },
 ];
 
 const comparisons = [
   { old: "Capital sits in banks earning 0% APY.", new: "Idle deposits earn DeFi Yield automatically." },
   { old: "Manual, slow, and opaque sales payouts.", new: "Instant $10 Payouts per verified meeting log." },
-  { old: "High friction: Users need SOL for gas fees.", new: "Gasless Experience via x402 (USDC only)." },
+  { old: "High friction: Users need SOL for gas fees.", new: "Zero Friction: No browser extension or initial SOL required." },
   { old: "Disconnected B2B networking.", new: "API-First integration for seamless B2B collab." },
 ];
 
@@ -50,6 +51,17 @@ function FadeInUp({ children, delay = 0 }: { children: React.ReactNode, delay?: 
 }
 
 export default function Home() {
+  const { login, authenticated } = usePrivy();
+  const router = useRouter();
+
+  const handleGetStarted = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (authenticated) {
+      router.push("/dashboard");
+    } else {
+      login();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#000000] selection:bg-black selection:text-white pb-10 font-sans">
@@ -64,12 +76,12 @@ export default function Home() {
             <a href="#docs" className="hover:text-black transition-colors">Docs</a>
           </nav>
           <div className="flex items-center">
-            <Link 
-              href="/dashboard"
-              className="bg-black text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-gray-800 transition-all shadow-sm hover:shadow-md"
+            <button 
+              onClick={handleGetStarted}
+              className="bg-black text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-gray-800 transition-all shadow-sm hover:shadow-md cursor-pointer"
             >
               Launch App
-            </Link>
+            </button>
           </div>
         </div>
       </header>
@@ -89,12 +101,12 @@ export default function Home() {
           </FadeInUp>
           <FadeInUp delay={0.2}>
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mb-6">
-              <Link 
-                href="/dashboard"
-                className="bg-black text-white hover:bg-gray-800 rounded-full px-8 py-4 text-base font-semibold transition-all hover:-translate-y-1 w-full sm:w-auto"
+              <button 
+                onClick={handleGetStarted}
+                className="bg-black text-white hover:bg-gray-800 rounded-full px-8 py-4 text-base font-semibold transition-all hover:-translate-y-1 w-full sm:w-auto cursor-pointer"
               >
                 Get Started with $100
-              </Link>
+              </button>
               <Link 
                 href="#docs"
                 className="bg-white text-black border border-gray-300 hover:bg-gray-50 rounded-full px-8 py-4 text-base font-semibold transition-all hover:-translate-y-1 w-full sm:w-auto"
@@ -103,7 +115,7 @@ export default function Home() {
               </Link>
             </div>
             <p className="text-xs text-gray-400 font-mono tracking-widest uppercase">
-              Powered by x402 Gasless Technology
+              Powered by Privy Gasless Infrastructure
             </p>
           </FadeInUp>
         </section>
@@ -170,16 +182,16 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Technical Spotlight (The x402 Advantage) */}
+        {/* Technical Spotlight */}
         <section id="api" className="max-w-4xl mx-auto scroll-mt-24">
           <FadeInUp>
             <div className="border border-gray-200 rounded-3xl p-10 md:p-16 text-center bg-gray-50/50">
               <div className="inline-flex items-center gap-2 mb-6 bg-white border border-gray-200 px-4 py-1.5 rounded-full text-sm font-semibold tracking-tight text-gray-500 shadow-sm">
-                <Network className="w-4 h-4" /> x402 Standard
+                <Network className="w-4 h-4" /> Privy Infrastructure
               </div>
               <h2 className="text-3xl font-bold tracking-tight mb-6">Web3 Power, Web2 Simplicity.</h2>
               <p className="text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto">
-                By leveraging the <strong className="text-black">x402 standard</strong>, Soldoway abstracts the complexity of blockchain. We decouple the fee-payer from the user, allowing sales professionals to earn and transact in USDC without ever worrying about gas prices or network congestion.
+                By leveraging <strong className="text-black">Privy&apos;s embedded wallets</strong>, Soldoway abstracts the complexity of blockchain. Users can join using Google or Email and start logging meetings immediately without needing to buy SOL for gas fees.
               </p>
             </div>
           </FadeInUp>
@@ -215,7 +227,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center text-sm font-medium text-gray-500">
           <div className="text-center md:text-left mb-4 md:mb-0">
             <p className="text-black font-semibold mb-1">Soldoway © 2026</p>
-            <p>Built on Solana. Sponsored by x402.</p>
+            <p>Built on Solana. Seamless Onboarding by Privy.</p>
           </div>
           <div className="flex gap-8">
             <a href="https://x.com/soldoway_sales" target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">Twitter</a>
