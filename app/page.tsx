@@ -8,35 +8,48 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
+import FlowSection from "@/app/components/FlowSection";
 
 const features = [
   { 
     icon: Shield, 
     title: "Low Barrier Entry", 
-    desc: "Kickstart your prospecting engine with as little as a $100 USDC deposit. Scale your B2B outreach without the heavy overhead." 
+    desc: "Kickstart your B2B engine with a $100 USDC deposit. Scale outreach programs without the heavy operational overhead or manual bank-to-bank friction." 
   },
   { 
     icon: ArrowUpRight, 
     title: "Yield-Bearing Escrow", 
-    desc: "Your budget works for you. While waiting for meetings to be logged, your funds are deployed into Solana's top DeFi vaults (Kamino/Solend)." 
+    desc: "Your capital is a productive asset. While awaiting meeting verification, funds are deployed into Solana's premier DeFi liquidity vaults (Kamino/Solend) to offset your marketing spend." 
   },
   { 
     icon: Code, 
     title: "B2B Connect API", 
-    desc: "Bridge the gap between Web3 and your CRM. Our API allows for seamless meeting validation and automated partner synchronization." 
+    desc: "Seamlessly integrate your CRM with the blockchain. Our API layer ensures real-time meeting validation and automated synchronization between your sales pipeline and partner rewards." 
   },
   { 
     icon: Zap, 
     title: "Zero-Gas Experience", 
-    desc: "Powered by Privy, we remove the \"SOL hurdle.\" Sales partners simply sign in with Email or Google, and Soldoway handles the transaction costs behind the scenes." 
+    desc: "Powered by Privy, we have eliminated the technical barriers of Web3. Your sales partners join using familiar Email or Google logins; Soldoway manages the blockchain complexity behind the scenes." 
   },
 ];
 
 const comparisons = [
-  { old: "Capital sits in banks earning 0% APY.", new: "Idle deposits earn DeFi Yield automatically." },
-  { old: "Manual, slow, and opaque sales payouts.", new: "Instant $10 Payouts per verified meeting log." },
-  { old: "High friction: Users need SOL for gas fees.", new: "Zero Friction: No browser extension or initial SOL required." },
-  { old: "Disconnected B2B networking.", new: "API-First integration for seamless B2B collab." },
+  { 
+    old: { title: "Capital Stagnation", desc: "Marketing budgets sit idle in banks." }, 
+    new: { title: "Automated DeFi Yield", desc: "Budget grows automatically in DeFi." } 
+  },
+  { 
+    old: { title: "Manual Overhead", desc: "Payouts are slow, manual, and opaque." }, 
+    new: { title: "Instant Smart Payouts", desc: "Payouts are instant and on-chain." } 
+  },
+  { 
+    old: { title: "The \"SOL\" Hurdle", desc: "High friction, wallets, and gas costs." }, 
+    new: { title: "Zero-Gas Experience", desc: "No wallets or gas required." } 
+  },
+  { 
+    old: { title: "Opaque Data", desc: "Disconnected B2B networking." }, 
+    new: { title: "API-First Transparency", desc: "Real-time, transparent B2B sync." } 
+  },
 ];
 
 function FadeInUp({ children, delay = 0 }: { children: React.ReactNode, delay?: number }) {
@@ -79,9 +92,9 @@ const Home = () => {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="text-xl font-bold tracking-tight z-50">Soldoway</div>
           <nav className="hidden md:flex gap-8 text-sm font-medium text-gray-500">
-            <a href="#features" className="hover:text-black transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-black transition-colors">How it Works</a>
-            <a href="#api" className="hover:text-black transition-colors">API</a>
+            <a href="#efficiency-gap" className="hover:text-black transition-colors">The Efficiency Gap</a>
+            <a href="#infrastructure" className="hover:text-black transition-colors">Core Infrastructure</a>
             <a href="#docs" className="hover:text-black transition-colors">Docs</a>
           </nav>
           <div className="flex items-center gap-4 z-50">
@@ -110,9 +123,9 @@ const Home = () => {
               className="md:hidden border-b border-gray-100 bg-white overflow-hidden absolute w-full"
             >
               <nav className="flex flex-col px-6 py-4 gap-4 text-base font-semibold text-gray-600">
-                <a href="#features" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-black py-2">Features</a>
                 <a href="#how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-black py-2">How it Works</a>
-                <a href="#api" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-black py-2">API</a>
+                <a href="#efficiency-gap" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-black py-2">The Efficiency Gap</a>
+                <a href="#infrastructure" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-black py-2">Core Infrastructure</a>
                 <a href="#docs" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-black py-2">Docs</a>
               </nav>
             </motion.div>
@@ -154,51 +167,64 @@ const Home = () => {
           </FadeInUp>
         </section>
 
+        {/* Flow Section */}
+        <section id="how-it-works" className="-mx-6 scroll-mt-24">
+          <FlowSection />
+        </section>
+
         {/* The Efficiency Gap */}
-        <section id="how-it-works" className="max-w-5xl mx-auto scroll-mt-24">
+        <section id="efficiency-gap" className="max-w-5xl mx-auto scroll-mt-24">
           <FadeInUp>
             <div className="mb-12 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">The Efficiency Gap</h2>
-              <p className="text-gray-500">Why the traditional model is broken, and how Soldoway fixes it.</p>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">The Opportunity Cost of Modern Sales</h2>
+              <p className="text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                <strong className="text-black font-semibold block mb-1">Why settle for idle capital?</strong> 
+                Traditional sales models treat your marketing budget as a sunk cost, sitting stagnant in business accounts. We see it as a capital-efficiency engine.
+              </p>
             </div>
           </FadeInUp>
           <FadeInUp delay={0.1}>
-            <div className="grid grid-cols-1 md:grid-cols-2 bg-white border border-gray-200 rounded-3xl overflow-hidden divide-y md:divide-y-0 md:divide-x divide-gray-200 shadow-sm">
-              <div className="p-10 md:p-12 bg-gray-50/50">
-                <h3 className="text-xl font-bold mb-8 flex items-center gap-3">
-                  <span className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs tracking-wider uppercase">The Old Way</span>
-                </h3>
-                <ul className="space-y-6">
-                  {comparisons.map((c, i) => (
-                    <li key={i} className="flex items-start gap-4 text-gray-500">
-                      <XCircle className="w-6 h-6 text-gray-400 shrink-0 mt-0.5" />
-                      <span className="leading-relaxed">{c.old}</span>
-                    </li>
-                  ))}
-                </ul>
+            <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
+              {/* Header Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100 border-b border-gray-100">
+                <div className="p-6 md:p-8 bg-gray-50 flex items-center gap-3">
+                  <span className="bg-gray-200 text-gray-500 px-3 py-1 rounded-full text-xs tracking-wider uppercase font-bold">The Traditional Friction</span>
+                </div>
+                <div className="p-6 md:p-8 bg-emerald-50/30 flex items-center gap-3">
+                  <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs tracking-wider uppercase font-bold">The Soldoway Advantage</span>
+                </div>
               </div>
-              <div className="p-10 md:p-12 bg-white">
-                <h3 className="text-xl font-bold mb-8 flex items-center gap-3">
-                  <span className="bg-black text-white px-3 py-1 rounded-full text-xs tracking-wider uppercase">The Soldoway Way</span>
-                </h3>
-                <ul className="space-y-6">
-                  {comparisons.map((c, i) => (
-                    <li key={i} className="flex items-start gap-4 text-black font-medium">
-                      <CheckCircle2 className="w-6 h-6 text-black shrink-0 mt-0.5" />
-                      <span className="leading-relaxed">{c.new}</span>
-                    </li>
-                  ))}
-                </ul>
+
+              {/* Rows */}
+              <div className="divide-y divide-gray-100 bg-white">
+                {comparisons.map((c, i) => (
+                  <div key={i} className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                    <div className="p-6 md:p-8 hover:bg-gray-50/50 transition-colors flex items-start gap-4">
+                      <XCircle className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-bold text-gray-900 mb-1">{c.old.title}</h4>
+                        <p className="text-gray-500 text-sm">{c.old.desc}</p>
+                      </div>
+                    </div>
+                    <div className="p-6 md:p-8 hover:bg-emerald-50/30 transition-colors flex items-start gap-4">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-bold text-gray-900 mb-1">{c.new.title}</h4>
+                        <p className="text-gray-500 text-sm">{c.new.desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </FadeInUp>
         </section>
 
         {/* Core Features */}
-        <section id="features" className="max-w-5xl mx-auto scroll-mt-24">
+        <section id="infrastructure" className="max-w-5xl mx-auto scroll-mt-24">
           <FadeInUp>
             <div className="mb-12 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Core Infrastructure</h2>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">Built for Institutional-Grade Scalability</h2>
             </div>
           </FadeInUp>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
