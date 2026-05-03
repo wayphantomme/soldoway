@@ -31,7 +31,7 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: nu
 import dynamic from "next/dynamic";
 
 const SalesPage = () => {
-  const { tasks, loading, updateTaskProgress } = useSoldoway();
+  const { tasks, loading, validateMeeting, wallet } = useSoldoway();
   const [dbCampaigns, setDbCampaigns] = useState<any[]>([]);
   const [isLoadingDb, setIsLoadingDb] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -75,16 +75,23 @@ const SalesPage = () => {
   });
 
   const handleLogSubmission = async () => {
-    if (!selectedTask) return;
+    if (!selectedTask || !wallet?.publicKey) {
+      toast.error("Please connect your wallet first.");
+      return;
+    }
+    
     if (!selectedTask.publicKey.startsWith("PENDING")) {
       setIssubmitting(true);
       try {
         toast.info("Transmitting meeting log...");
-        await updateTaskProgress(new PublicKey(selectedTask.publicKey));
+        // In this flow, the current user is the sales partner receiving the SOL payout.
+        // NOTE: The transaction will only succeed if the current user is also the creator,
+        // OR if the program is modified to allow partner signatures (current lib.rs requires creator).
+        await validateMeeting(new PublicKey(selectedTask.publicKey), wallet.publicKey.toString());
         toast.success("Reward unlocked. Check your balance.");
         setSelectedTask(null);
       } catch (err) {
-        toast.error("Network error. Try again.");
+        toast.error("Transaction failed. Check console for logs.");
         console.error(err);
       } finally {
         setIssubmitting(false);

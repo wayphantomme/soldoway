@@ -70,7 +70,7 @@ export function FlowSection() {
                   <TrendingUp className="w-5 h-5 text-slate-600" />
                 </div>
               </div>
-              <h4 className="text-lg md:text-xl font-bold mb-2">Business Having Yield</h4>
+              <h4 className="text-lg md:text-xl font-bold mb-2">Yield (Business)</h4>
               <p className="text-slate-600 font-medium leading-relaxed">Harnessing the Solana DeFi ecosystem to turn marketing wait-time into measurable capital gains.</p>
             </div>
 
@@ -81,8 +81,8 @@ export function FlowSection() {
                   <Handshake className="w-5 h-5 text-slate-600" />
                 </div>
               </div>
-              <h4 className="text-lg md:text-xl font-bold mb-2">Business Having B2B Meeting</h4>
-              <p className="text-slate-600 font-medium leading-relaxed">Validated meetings trigger an automatic, real-time payout to the sales partner.</p>
+              <h4 className="text-lg md:text-xl font-bold mb-2">Instant % Payout (Sales)</h4>
+              <p className="text-slate-600 font-medium leading-relaxed">Validated meetings trigger an automatic, real-time percentage-based payout to the sales partner.</p>
             </div>
           </div>
         </div>

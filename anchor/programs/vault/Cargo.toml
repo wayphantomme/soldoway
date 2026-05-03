@@ -11,6 +11,7 @@ name = "vault"
 [features]
 default = []
 cpi = ["no-entrypoint"]
+devnet = []
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []

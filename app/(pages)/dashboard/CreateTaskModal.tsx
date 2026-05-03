@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Link as LinkIcon, Loader2, ChevronDown, AlignLeft, Building2, Target } from "lucide-react";
 
@@ -19,20 +19,32 @@ interface CreateTaskModalProps {
     companyName: string;
     category: string;
     description: string;
-    payout: number;
+    percentageFee: number;
     budget: number;
     link: string;
   }) => Promise<void>;
+  isReady?: boolean;
+  authenticated?: boolean;
+  ready?: boolean;
+  connect?: () => void;
 }
 
-export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTaskModalProps) {
+export default function CreateTaskModal({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  isReady = false,
+  authenticated = false,
+  ready = false,
+  connect
+}: CreateTaskModalProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     companyName: "",
     category: "AI",
     description: "",
-    payout: 0.1,
+    percentageFee: 10,
     budget: 1.0,
     link: "",
   });
@@ -50,7 +62,16 @@ export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTas
     }
   };
 
-  const estimatedMeetings = formData.payout > 0 ? Math.floor(formData.budget / formData.payout) : 0;
+  const payoutPerMeeting = (Number(formData.budget) || 0) * ((Number(formData.percentageFee) || 0) / 100);
+  const estimatedMeetings = (Number(formData.percentageFee) || 0) > 0 ? Math.floor(100 / Number(formData.percentageFee)) : 0;
+  
+  const isInvalid = isNaN(Number(formData.budget)) || isNaN(Number(formData.percentageFee)) || Number(formData.budget) <= 0 || Number(formData.percentageFee) <= 0;
+
+  useEffect(() => {
+    if (isOpen) {
+      console.log("Modal state | isReady:", isReady, "| authenticated:", authenticated, "| ready:", ready);
+    }
+  }, [isOpen, isReady, authenticated, ready]);
 
   return (
     <AnimatePresence>
@@ -134,15 +155,17 @@ export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTas
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2.5">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Payout / Meeting</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Percentage Fee (%)</label>
                       <div className="relative">
                         <input
                           required
                           type="number"
-                          step="0.001"
+                          step="0.1"
+                          min="0"
+                          max="100"
                           className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 md:pl-12 pr-4 md:pr-5 py-3 md:py-4 focus:outline-none focus:ring-4 focus:ring-black/[0.02] transition-all text-slate-900 font-mono font-bold text-base md:text-sm"
-                          value={formData.payout}
-                          onChange={(e) => setFormData({ ...formData, payout: parseFloat(e.target.value) })}
+                          value={formData.percentageFee === 0 ? "" : formData.percentageFee}
+                          onChange={(e) => setFormData({ ...formData, percentageFee: e.target.value ? Number(e.target.value) : 0 })}
                         />
                         <div className="absolute left-3.5 md:left-4 top-1/2 -translate-y-1/2">
                            <SolanaLogo className="w-3.5 h-3.5 md:w-4 md:h-4 text-slate-200" />
@@ -157,8 +180,8 @@ export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTas
                           type="number"
                           step="0.1"
                           className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 md:pl-12 pr-4 md:pr-5 py-3 md:py-4 focus:outline-none focus:ring-4 focus:ring-black/[0.02] transition-all text-slate-900 font-mono font-bold text-base md:text-sm"
-                          value={formData.budget}
-                          onChange={(e) => setFormData({ ...formData, budget: parseFloat(e.target.value) })}
+                          value={formData.budget === 0 ? "" : formData.budget}
+                          onChange={(e) => setFormData({ ...formData, budget: e.target.value ? Number(e.target.value) : 0 })}
                         />
                         <div className="absolute left-3.5 md:left-4 top-1/2 -translate-y-1/2">
                            <SolanaLogo className="w-3.5 h-3.5 md:w-4 md:h-4 text-slate-200" />
@@ -167,6 +190,13 @@ export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTas
                     </div>
                   </div>
 
+                  <div className="bg-slate-50 rounded-2xl p-4 flex items-center justify-between">
+                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Est. Payout per Meeting</span>
+                     <span className="text-sm font-bold text-slate-900 flex items-center gap-1">
+                        <SolanaLogo className="w-3.5 h-3.5 text-slate-400" />
+                        {payoutPerMeeting.toFixed(3)}
+                     </span>
+                  </div>
                   <div className="bg-slate-50 rounded-2xl p-4 flex items-center justify-between">
                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Meeting Capacity</span>
                      <span className="text-sm font-bold text-slate-900">{estimatedMeetings} <span className="text-slate-400">Total</span></span>
@@ -184,12 +214,20 @@ export default function CreateTaskModal({ isOpen, onClose, onSubmit }: CreateTas
                   Cancel
                 </button>
                 <button
-                  disabled={loading}
+                  disabled={loading || !isReady || isInvalid}
                   type="submit"
                   className="w-full md:w-auto bg-black text-white px-10 py-3.5 md:py-4 rounded-xl text-sm font-bold shadow-lg shadow-black/5 hover:bg-slate-800 transition-all active:scale-[0.98] disabled:opacity-50 min-w-[200px] flex items-center justify-center gap-3"
                 >
-                  {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                  {!isReady ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Initializing Wallet...
+                    </>
+                  ) : loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Signing...
+                    </>
                   ) : (
                     <>
                       <SolanaLogo className="w-4 h-4" />

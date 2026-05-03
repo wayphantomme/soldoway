@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { campaignPda, ownerWallet, title, companyName, category, description, payout, totalDeposit } = body;
+    const { campaignPda, ownerWallet, title, companyName, category, description, percentageFee, totalDeposit } = body;
 
     if (!campaignPda || !ownerWallet || !title || totalDeposit === undefined) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         companyName,
         category,
         description,
-        payout,
+        percentageFee,
         totalDeposit,
         currentYield: 0,
       },

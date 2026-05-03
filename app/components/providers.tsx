@@ -64,9 +64,7 @@ export function Providers({ children }: PropsWithChildren) {
             </div>
           </div>
         )
-      ) : (
-        <>{children}</>
-      )}
+      ) : null}
     </ThemeProvider>
   );
 }

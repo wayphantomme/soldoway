@@ -34,7 +34,7 @@ import dynamic from "next/dynamic";
 
 const DashboardPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { tasks, loading, createTask } = useSoldoway();
+  const { tasks, loading, createTask, isReady, authenticated, ready, connect } = useSoldoway();
   const { user } = usePrivy();
   
   const [dbCampaigns, setDbCampaigns] = useState<any[]>([]);
@@ -78,17 +78,25 @@ const DashboardPage = () => {
       }
     });
 
-    // Convert map to array for Recharts, ensuring chronological order is maintained
-    // Assuming the logs are fetched in ascending order, the map insertion order might be close enough
-    // For a robust implementation, sorting by actual dates would be better, but we use days for now.
+    // Convert map to array for Recharts
     const result: {name: string, yield: number}[] = [];
     dateMap.forEach((val, key) => {
       result.push({ name: key, yield: val });
     });
     
-    // If no data, return empty to avoid breaking chart
     return result;
   }, [dbCampaigns]);
+
+  const hasYieldData = yieldData.length > 0;
+  const displayYieldData = hasYieldData ? yieldData : [
+    { name: "Mon", yield: 0 },
+    { name: "Tue", yield: 0.002 },
+    { name: "Wed", yield: 0.005 },
+    { name: "Thu", yield: 0.010 },
+    { name: "Fri", yield: 0.018 },
+    { name: "Sat", yield: 0.025 },
+    { name: "Sun", yield: 0.035 },
+  ];
 
   // Aggregate stats from live data (Solana + Postgres)
   const stats = useMemo(() => {
@@ -130,7 +138,7 @@ const DashboardPage = () => {
         data.companyName,
         data.category,
         data.description,
-        data.payout * LAMPORTS_PER_SOL, 
+        data.percentageFee, 
         data.budget * LAMPORTS_PER_SOL
       );
       
@@ -146,7 +154,7 @@ const DashboardPage = () => {
             companyName: data.companyName,
             category: data.category,
             description: data.description,
-            payout: parseFloat(data.payout),
+            percentageFee: parseFloat(data.percentageFee),
             totalDeposit: parseFloat(data.budget),
           })
         });
@@ -212,9 +220,17 @@ const DashboardPage = () => {
 
         {/* Yield Tracker Chart */}
         <section className="lg:col-span-2">
-           <FadeIn delay={0.2}>
-             <div className="bg-white border border-slate-200 rounded-[24px] p-8 shadow-sm h-full flex flex-col">
-               <div className="flex justify-between items-center mb-8">
+           <FadeIn delay={0.2} className="h-full">
+             <div className="bg-slate-50 border border-slate-200 rounded-[24px] p-8 shadow-sm h-full flex flex-col relative overflow-hidden">
+               {/* Overlay for Placeholder Data */}
+               {!hasYieldData && (
+                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-50/60 backdrop-blur-[1px]">
+                   <span className="text-sm font-bold text-slate-500 uppercase tracking-widest bg-white/80 px-4 py-2 rounded-xl shadow-sm border border-slate-100">
+                     Waiting for data...
+                   </span>
+                 </div>
+               )}
+               <div className="flex justify-between items-center mb-8 relative z-20">
                  <div>
                    <h2 className="text-xl font-bold tracking-tight text-slate-900">Yield Growth</h2>
                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Aggregated across active vaults</p>
@@ -225,9 +241,9 @@ const DashboardPage = () => {
                  </div>
                </div>
                
-               <div className="flex-1 w-full min-h-[300px]">
+               <div className="flex-1 w-full min-h-[300px] relative z-0 opacity-80">
                  <ResponsiveContainer width="100%" height="100%">
-                   <AreaChart data={yieldData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                   <AreaChart data={displayYieldData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                      <defs>
                        <linearGradient id="colorYield" x1="0" y1="0" x2="0" y2="1">
                          <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
@@ -309,7 +325,8 @@ const DashboardPage = () => {
                   .map((task, i) => {
                   const progress = task.totalBudget.toNumber() > 0 ? (task.payoutsDistributed.toNumber() / task.totalBudget.toNumber()) * 100 : 0;
                   const remaining = (task.totalBudget.toNumber() - task.payoutsDistributed.toNumber()) / LAMPORTS_PER_SOL;
-                  const payout = task.payoutPerMeeting.toNumber() / LAMPORTS_PER_SOL;
+                  const percentageFee = task.percentageFee ? task.percentageFee.toNumber() / 100 : 0;
+                  const payout = (task.totalBudget.toNumber() / LAMPORTS_PER_SOL) * (percentageFee / 100);
 
                   return (
                     <tr key={task.publicKey.toString()} className="group hover:bg-slate-50/30 transition-colors">
@@ -380,6 +397,10 @@ const DashboardPage = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         onSubmit={handleCreateTask}
+        isReady={isReady}
+        authenticated={authenticated}
+        ready={ready}
+        connect={connect}
       />
     </div>
   );

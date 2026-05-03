@@ -16,7 +16,7 @@ model Campaign {
   companyName     String?
   category        String?
   description     String?
-  payout          Float?
+  percentageFee   Float?
   totalDeposit    Float
   currentYield    Float     @default(0)
   status          String    @default("ACTIVE")
